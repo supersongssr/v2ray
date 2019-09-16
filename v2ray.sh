@@ -2887,6 +2887,16 @@ v | version)
 bbr)
 	other
 	;;
+## song 之后在这里加上 一些自己需要的条件就行了，嘎嘎 不错不错 可以有
+resspass)
+	new_sspass=${uuid:0:7}
+	backup_config sspass
+	sspass=$new_sspass
+	config
+	clear
+	view_shadowsocks_config_info
+	# get_shadowsocks_config_qr_ask
+	;;
 help | *)
 	_help
 	;;

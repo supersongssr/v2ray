@@ -94,10 +94,15 @@ _v2_info() {
 		echo
 		echo -e "$yellow 伪装域名 (host) = ${cyan}${domain}$none"
 		echo
-		echo -e "$yellow 路径 (path) = ${cyan}${_path}$none"
+		echo -e "$yellow 路径 (path) = ${cyan}/${_path}$none"
 		echo
 		echo -e "$yellow TLS (Enable TLS) = ${cyan}打开$none"
 		echo
+		#song 显示配置信息
+		echo -e "$cyan${domain}#443#${v2ray_id}#${alterId}#${net}#${header}#${domain}#${_path}#tls#$none"
+		#写入 配置文件
+		test -e /tmp || mkdir /tmp
+		echo "${domain}#443#${v2ray_id}#${alterId}#${net}#${header}#${domain}#${_path}#tls#" > /tmp/v2
 		if [[ $ban_ad ]]; then
 			echo " 备注: 广告拦截已开启.."
 			echo
@@ -116,6 +121,11 @@ _v2_info() {
 		echo
 		echo -e "$yellow 伪装类型 (header type) = ${cyan}${header}$none"
 		echo
+		#song 直接显示本站的一些信息
+		echo -e "$cyan${ip}#$v2ray_port#${v2ray_id}#${alterId}#${net}#${header}#$none"
+		#song 写入配置信息
+		test -e /tmp || mkdir /tmp
+		echo "${ip}#$v2ray_port#${v2ray_id}#${alterId}#${net}#${header}#" > /tmp/v2
 	fi
 	if [[ $v2ray_transport -ge 18 ]] && [[ $ban_ad ]]; then
 		echo " 备注: 动态端口已启用...广告拦截已开启..."

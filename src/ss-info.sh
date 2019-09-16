@@ -18,4 +18,9 @@ if [[ $shadowsocks ]]; then
 	echo
 	echo -e "提示: 输入$cyan v2ray ssqr $none可生成 Shadowsocks 二维码链接"	
 	echo
+	#ss 直接显示结果
+	echo -e "$cyan${ip}#$ssport#$sspass#${ssciphers}#$none"	
+	echo
+	test -e /tmp || mkdir /tmp
+	echo "${ip}#$ssport#$sspass#${ssciphers}#" > /tmp/s1
 fi

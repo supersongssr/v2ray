@@ -196,9 +196,9 @@ v2ray_port_config() {
 		tls_config
 		;;
 	*)
-		local random=$(shuf -i20001-65535 -n1)
+		local random=$(shuf -i10001-10999 -n1)
 		while :; do
-			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"1-65535"$none"]"
+			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]"
 			read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
 			[ -z "$v2ray_port" ] && v2ray_port=$random
 			case $v2ray_port in
@@ -299,9 +299,9 @@ v2ray_dynamic_port_end() {
 tls_config() {
 
 	echo
-	local random=$(shuf -i20001-65535 -n1)
+	local random=$(shuf -i10001-10999 -n1)
 	while :; do
-		echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"1-65535"$none"]，不能选择 "$magenta"80"$none" 或 "$magenta"443"$none" 端口"
+		echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]，不能选择 "$magenta"80"$none" 或 "$magenta"443"$none" 端口"
 		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
 		[ -z "$v2ray_port" ] && v2ray_port=$random
 		case $v2ray_port in
@@ -457,8 +457,8 @@ path_config() {
 	echo
 	while :; do
 		echo -e "请输入想要 ${magenta}用来分流的路径$none , 例如 /233blog , 那么只需要输入 233blog 即可"
-		read -p "$(echo -e "(默认: [${cyan}233blog$none]):")" path
-		[[ -z $path ]] && path="233blog"
+		read -p "$(echo -e "(默认: [${cyan}panel$none]):")" path
+		[[ -z $path ]] && path="panel"
 
 		case $path in
 		*[/$]*)
@@ -567,7 +567,7 @@ shadowsocks_config() {
 }
 
 shadowsocks_port_config() {
-	local random=$(shuf -i20001-65535 -n1)
+	local random=$(shuf -i10001-10999 -n1)
 	while :; do
 		echo -e "请输入 "$yellow"Shadowsocks"$none" 端口 ["$magenta"1-65535"$none"]，不能和 "$yellow"V2Ray"$none" 端口相同"
 		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):") " ssport
@@ -617,11 +617,12 @@ shadowsocks_port_config() {
 	shadowsocks_password_config
 }
 shadowsocks_password_config() {
+	new_sspass=${uuid:0:7}
 
 	while :; do
 		echo -e "请输入 "$yellow"Shadowsocks"$none" 密码"
-		read -p "$(echo -e "(默认密码: ${cyan}233blog.com$none)"): " sspass
-		[ -z "$sspass" ] && sspass="233blog.com"
+		read -p "$(echo -e "(默认密码: ${cyan}$new_sspass$none)"): " sspass
+		[ -z "$sspass" ] && sspass=$new_sspass
 		case $sspass in
 		*[/$]*)
 			echo
