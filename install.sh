@@ -858,6 +858,24 @@ open_port() {
 		# 	service iptables save >/dev/null 2>&1
 		# 	service ip6tables save >/dev/null 2>&1
 	fi
+#song 这里添加了 centos yum下的 firewalld开启 端口的方法
+	if [[ $cmd == "yum" ]]; then
+		if [[ $1 != "multiport" ]]; then
+
+			firewall-cmd --permanent --zone=public --add-port=$1/tcp
+			firewall-cmd --permanent --zone=public --add-port=$1/udp
+			firewall-cmd --reload
+
+		else
+
+			local multiport="${v2ray_dynamic_port_start_input}:${v2ray_dynamic_port_end_input}"
+
+			local multi_port="${v2ray_dynamic_port_start_input}-${v2ray_dynamic_port_end_input}"
+			firewall-cmd --permanent --zone=public --add-port=$multi_port/tcp
+			firewall-cmd --permanent --zone=public --add-port=$multi_port/udp
+			firewall-cmd --reload
+		fi
+	fi
 }
 del_port() {
 	if [[ $cmd == "apt-get" ]]; then
