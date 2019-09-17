@@ -860,6 +860,7 @@ open_port() {
 	fi
 #song 这里添加了 centos yum下的 firewalld开启 端口的方法
 	if [[ $cmd == "yum" ]]; then
+		systemctl restart firewalld
 		if [[ $1 != "multiport" ]]; then
 
 			firewall-cmd --permanent --zone=public --add-port=$1/tcp
