@@ -173,7 +173,7 @@ v2ray_config() {
 		echo "备注2: [utp | srtp | wechat-video | dtls | wireguard] 分别伪装成 [BT下载 | 视频通话 | 微信视频通话 | DTLS 1.2 数据包 | WireGuard 数据包]"
 		echo
 		read -p "$(echo -e "(默认协议: ${cyan}TCP$none)"):" v2ray_transport
-		[ -z "$v2ray_transport" ] && v2ray_transport=1
+		[ -z "$v2ray_transport" ] && v2ray_transport=3
 		case $v2ray_transport in
 		[1-9] | [1-2][0-9] | 3[0-2])
 			echo
@@ -549,8 +549,8 @@ shadowsocks_config() {
 
 	while :; do
 		echo -e "是否配置 ${yellow}Shadowsocks${none} [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认 [${cyan}N$none]):") " install_shadowsocks
-		[[ -z "$install_shadowsocks" ]] && install_shadowsocks="n"
+		read -p "$(echo -e "(默认 [${cyan}Y$none]):") " install_shadowsocks
+		[[ -z "$install_shadowsocks" ]] && install_shadowsocks="y"
 		if [[ "$install_shadowsocks" == [Yy] ]]; then
 			echo
 			shadowsocks=true
@@ -1126,6 +1126,7 @@ while :; do
 		echo
 	fi
 	read -p "$(echo -e "请选择 [${magenta}1-2$none]:")" choose
+	[[ -z $choose ]] && $choose="1"
 	case $choose in
 	1)
 		install
