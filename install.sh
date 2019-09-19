@@ -172,7 +172,7 @@ v2ray_config() {
 		echo "备注1: 含有 [dynamicPort] 的即启用动态端口.."
 		echo "备注2: [utp | srtp | wechat-video | dtls | wireguard] 分别伪装成 [BT下载 | 视频通话 | 微信视频通话 | DTLS 1.2 数据包 | WireGuard 数据包]"
 		echo
-		read -p "$(echo -e "(默认协议: ${cyan}TCP$none)"):" v2ray_transport
+		read -p "$(echo -e "(默认协议: ${cyan}ws 3$none)"):" v2ray_transport
 		[ -z "$v2ray_transport" ] && v2ray_transport=3
 		case $v2ray_transport in
 		[1-9] | [1-2][0-9] | 3[0-2])
@@ -1126,7 +1126,7 @@ while :; do
 		echo
 	fi
 	read -p "$(echo -e "请选择 [${magenta}1-2$none]:")" choose
-	[[ -z $choose ]] && $choose="1"
+	[[ -z $choose ]] && choose="1"
 	case $choose in
 	1)
 		install
