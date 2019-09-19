@@ -1125,7 +1125,7 @@ while :; do
 		echo -e "$yellow 温馨提示.. 本地安装已启用 ..$none"
 		echo
 	fi
-	read -p "$(echo -e "请选择 [${magenta}1-2$none]:")" choose
+	read -p "$(echo -e "请选择 [${magenta}1-2 默认选择1$none]:")" choose
 	[[ -z $choose ]] && choose="1"
 	case $choose in
 	1)
