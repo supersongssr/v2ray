@@ -199,8 +199,8 @@ v2ray_port_config() {
 		local random=$(shuf -i10001-10999 -n1)
 		while :; do
 			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]"
-			read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
-			[ -z "$v2ray_port" ] && v2ray_port=$random
+			read -p "$(echo -e "(默认端口: ${cyan}80$none):")" v2ray_port
+			[ -z "$v2ray_port" ] && v2ray_port=80
 			case $v2ray_port in
 			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 				echo
@@ -549,8 +549,8 @@ shadowsocks_config() {
 
 	while :; do
 		echo -e "是否配置 ${yellow}Shadowsocks${none} [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认 [${cyan}Y$none]):") " install_shadowsocks
-		[[ -z "$install_shadowsocks" ]] && install_shadowsocks="y"
+		read -p "$(echo -e "(默认 [${cyan}N$none]):") " install_shadowsocks
+		[[ -z "$install_shadowsocks" ]] && install_shadowsocks="n"
 		if [[ "$install_shadowsocks" == [Yy] ]]; then
 			echo
 			shadowsocks=true
