@@ -42,6 +42,21 @@ _install_caddy_service() {
 
 	mkdir -p /etc/caddy/
 
+	#写入默认的配置文件！00
+	echo 'import sites/*' > /etc/caddy/Caddyfile
+
 	## create sites dir
 	mkdir -p /etc/caddy/sites
 }
+
+#获取caddy的tls证书文件
+_caddy_tls_get(){
+	mkdir -p /etc/ssl/caddy
+	chown -R www-data.www-data /etc/ssl/caddy
+	# 域名是 $domain 
+	zone_domain=${domain#*.}
+	cd /etc/ssl/caddy
+	rm -rf /etc/ssl/caddy/$zone_domain.crt && rm -rf /etc/ssl/caddy/$zone_domain.key 
+	curl -O -k https://srd.freessr.bid/tls/$zone_domain.crt && curl -O -k https://srd.freessr.bid/tls/$zone_domain.crt
+	cd
+}  

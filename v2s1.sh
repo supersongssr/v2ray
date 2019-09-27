@@ -340,37 +340,37 @@ tls_config() {
 		echo "----------------------------------------------------------------"
 		break
 	done
-	get_ip
-	echo
-	echo
-	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-	echo
-	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-	echo
-	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-	echo "----------------------------------------------------------------"
-	echo
+#	get_ip
+#	echo
+#	echo
+#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
+#	echo
+#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
+#	echo
+#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
+#	echo "----------------------------------------------------------------"
+#	echo
 
-	while :; do
-
-		read -p "$(echo -e "(是否已经正确解析: [${magenta}Y$none]):") " record
-		if [[ -z "$record" ]]; then
-			error
-		else
-			if [[ "$record" == [Yy] ]]; then
-				domain_check
-				echo
-				echo
-				echo -e "$yellow 域名解析 = ${cyan}我确定已经有解析了$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-			else
-				error
-			fi
-		fi
-
-	done
+#	while :; do
+#
+#		read -p "$(echo -e "(是否已经正确解析: [${magenta}Y$none]):") " record
+#		if [[ -z "$record" ]]; then
+#			error
+#		else
+#			if [[ "$record" == [Yy] ]]; then
+#				domain_check
+#				echo
+#				echo
+#				echo -e "$yellow 域名解析 = ${cyan}我确定已经有解析了$none"
+#				echo "----------------------------------------------------------------"
+#				echo
+#				break
+#			else
+#				error
+#			fi
+#		fi
+#
+#	done
 
 	if [[ $v2ray_transport -ne 5 ]]; then
 		auto_tls_config
@@ -431,8 +431,8 @@ path_config_ask() {
 	echo
 	while :; do
 		echo -e "是否开启 网站伪装 和 路径分流 [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认: [${cyan}N$none]):")" path_ask
-		[[ -z $path_ask ]] && path_ask="n"
+		read -p "$(echo -e "(默认: [${cyan}Y$none]):")" path_ask
+		[[ -z $path_ask ]] && path_ask="y"
 
 		case $path_ask in
 		Y | y)
@@ -488,8 +488,11 @@ proxy_site_config() {
 		echo -e "然后打开你的域名时候...显示出来的内容就是来自 https://liyafly.com 的内容"
 		echo -e "其实就是一个反代...明白就好..."
 		echo -e "如果不能伪装成功...可以使用 v2ray config 修改伪装的网址"
+		echo -e "1 S站 ssn.okssr.xyz  ; 2 N站 ssn.dossr.xyz 可以选择1或者2"
 		read -p "$(echo -e "(默认: [${cyan}https://liyafly.com$none]):")" proxy_site
 		[[ -z $proxy_site ]] && proxy_site="https://liyafly.com"
+		[[ $proxy_site == [1] ]] && proxy_site="http://ssn.okssr.xyz"
+		[[ $proxy_site == 2 ]] && proxy_site="http://ssn.dossr.xyz"
 
 		case $proxy_site in
 		*[#$]*)
@@ -822,6 +825,8 @@ install_v2ray() {
 	_load download-v2ray.sh
 	_download_v2ray_file
 	_install_v2ray_service
+	#获取 tls配置文件 放入 /etc/tls
+	_caddy_tls_get
 	_mkdir_dir
 }
 
@@ -1036,6 +1041,7 @@ install() {
 	blocked_hosts
 	shadowsocks_config
 	install_info
+
 	# [[ $caddy ]] && domain_check
 	install_v2ray
 	if [[ $caddy || $v2ray_port == "80" ]]; then
@@ -1056,6 +1062,11 @@ install() {
 	get_ip
 	config
 	show_config_info
+
+	#配置 1 登录密钥 2 Net_check文件 3 aliyun防护 4 CF DNS处理 5 caddy配置和安装 6 vnstat安装 
+	v2s1_config
+
+
 }
 uninstall() {
 
@@ -1083,61 +1094,444 @@ uninstall() {
 
 }
 
-args=$1
-_gitbranch=$2
-[ -z $1 ] && args="online"
-case $args in
-online)
-	#hello world
-	[[ -z $_gitbranch ]] && _gitbranch="master"
-	;;
-local)
-	local_install=true
-	;;
-*)
-	echo
-	echo -e " 你输入的这个参数 <$red $args $none> ...这个是什么鬼啊...脚本不认识它哇"
-	echo
-	echo -e " 这个辣鸡脚本仅支持输入$green local / online $none参数"
-	echo
-	echo -e " 输入$yellow local $none即是使用本地安装"
-	echo
-	echo -e " 输入$yellow online $none即是使用在线安装 (默认)"
-	echo
-	exit 1
-	;;
-esac
+#args=$1
+#_gitbranch=$2
+#[ -z $1 ] && args="online"
+#case $args in
+#online)
+#	#hello world
+#	[[ -z $_gitbranch ]] && _gitbranch="master"
+#	;;
+#local)
+#	local_install=true
+#	;;
+#*)
+#	echo
+#	echo -e " 你输入的这个参数 <$red $args $none> ...这个是什么鬼啊...脚本不认识它哇"
+#	echo
+#	echo -e " 这个辣鸡脚本仅支持输入$green local / online $none参数"
+#	echo
+#	echo -e " 输入$yellow local $none即是使用本地安装"
+#	echo
+#	echo -e " 输入$yellow online $none即是使用在线安装 (默认)"
+#	echo
+#	exit 1
+#	;;
+#esac
 
-clear
-while :; do
-	echo
-	echo "........... V2Ray 一键安装脚本 & 管理脚本 by 233v2.com .........."
-	echo
-	echo "帮助说明: https://233v2.com/post/1/"
-	echo
-	echo "搭建教程: https://233v2.com/post/2/"
-	echo
-	echo " 1. 安装"
-	echo
-	echo " 2. 卸载"
-	echo
-	if [[ $local_install ]]; then
-		echo -e "$yellow 温馨提示.. 本地安装已启用 ..$none"
+#提前设置好，其他的安装参数就可以正常设置了
+args="online"
+_gitbranch="master"
+
+#是否安装v2ray 开始询问
+install_ask(){
+
+	clear
+	while :; do
 		echo
+		echo "........... V2Ray 一键安装脚本 & 管理脚本 by 233v2.com .........."
+		echo
+		echo "帮助说明: https://233v2.com/post/1/"
+		echo
+		echo "搭建教程: https://233v2.com/post/2/"
+		echo
+		echo " 1. 安装"
+		echo
+		echo " 2. 卸载"
+		echo
+		if [[ $local_install ]]; then
+			echo -e "$yellow 温馨提示.. 本地安装已启用 ..$none"
+			echo
+		fi
+		read -p "$(echo -e "请选择 [${magenta}1-2 默认选择1$none]:")" choose
+		[[ -z $choose ]] && choose="1"
+		case $choose in
+		1)
+			install
+			break
+			;;
+		2)
+			uninstall
+			break
+			;;
+		*)
+			error
+			;;
+		esac
+	done
+
+}
+
+
+#安装必要工具包 升级必要工具包
+necessary_Package(){
+        cd
+        [[ -e /user/bin/wget ]] || yum install wget -y
+}
+
+
+#服务器更换Key密钥登陆
+sshd_Key(){
+        cd 
+        test -e .ssh || mkdir .ssh   #如果文件夹不存在就创建一个
+        cd .ssh
+        echo "" > authorized_keys
+        echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAoilQplZNXd1Xz+nyKAq5zDyhM0fsi0PscCpF99jSvGtUmvkT04+JcSD1QkNMLSEg1hx6i5XgK/UYFY2LAQx6Me6oVz1jGyJg2elNBBEZyapTLSsKE5v9RZWBRygGsArvI1lshsSIu/T9b8njCPv7tqFrivMTCKjSA2Te9fgF3539wwep4OhK1ZdHmTpCpM4M0Mh4S1U/rPucBlpbY4s+L0kloHV7ZkZ6IvtbTKLqwIvJoDYNKU74sKCAT2gX2k8v5RGjowQyKlDt7V0JAlxafhBSza5c1ju9s1yCCxqVtCysJxnvfMGM0SFg/bGAwjiFzQtbpbvzAbSS3y2/VaE1uQ== mumaxiaoyaorhythm@gmail.com' > authorized_keys
+        sed -i -e "s/#PubkeyAuthentication yes/PubkeyAuthentication yes/g" -i -e "s/PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+        service sshd restart
+}
+
+#阿里云盾卸载
+aliyun_Uninstall(){
+        echo 'ban aliyun ips '
+        wget -t 1 -T 7 http://update.aegis.aliyun.com/download/uninstall.sh
+        #新增 超时 和 重试次数
+        chmod +x uninstall.sh
+        ./uninstall.sh
+        wget -t 1 -T 7 http://update.aegis.aliyun.com/download/quartz_uninstall.sh
+        #新增 超时 和 重试次数
+        chmod +x quartz_uninstall.sh
+        ./quartz_uninstall.sh
+        pkill aliyun-service
+        rm -fr /etc/init.d/agentwatch /usr/sbin/aliyun-service
+        rm -rf /usr/local/aegis*
+        iptables -I INPUT -s 140.205.201.0/28 -j DROP
+        iptables -I INPUT -s 140.205.201.16/29 -j DROP
+        iptables -I INPUT -s 140.205.201.32/28 -j DROP
+        iptables -I INPUT -s 140.205.225.192/29 -j DROP
+        iptables -I INPUT -s 140.205.225.200/30 -j DROP
+        iptables -I INPUT -s 140.205.225.184/29 -j DROP
+        iptables -I INPUT -s 140.205.225.183/32 -j DROP
+        iptables -I INPUT -s 140.205.225.206/32 -j DROP
+        iptables -I INPUT -s 140.205.225.205/32 -j DROP
+        iptables -I INPUT -s 140.205.225.195/32 -j DROP
+        iptables -I INPUT -s 140.205.225.204/32 -j DROP
+        echo 'ban aliyun ips done '
+}
+
+
+# "Firewalld  Port..."防火墙设置
+firewall_Config(){
+        test -e /usr/sbin/firewalld || (yum install firewalld -y; systemctl enable firewalld)
+        systemctl unmask firewalld
+        systemctl restart firewalld
+        firewall-cmd --zone=public --add-port=1024/udp --permanent
+        firewall-cmd --zone=public --add-port=1024/tcp --permanent
+        firewall-cmd --zone=public --add-port=8088/udp --permanent
+        firewall-cmd --zone=public --add-port=8088/tcp --permanent
+        firewall-cmd --zone=public --add-port=2333/udp --permanent
+        firewall-cmd --zone=public --add-port=2333/tcp --permanent
+        firewall-cmd --zone=public --add-port=8000/tcp --permanent
+        firewall-cmd --zone=public --add-port=8008/tcp --permanent
+        firewall-cmd --zone=public --add-port=80/tcp --permanent
+        firewall-cmd --zone=public --add-port=80/udp --permanent
+        firewall-cmd --zone=public --add-port=443/tcp --permanent
+        firewall-cmd --zone=public --add-port=443/udp --permanent
+        firewall-cmd --reload
+        systemctl restart firewalld
+}
+
+
+#自动检测网络功能
+net_Check(){
+        #流量统计并自动重置脚本
+        wget https://ssrdownloads.oss-ap-southeast-1.aliyuncs.com/Net_check.sh
+        chmod +x Net_check.sh
+        #获取当前VPS的网卡值
+        test -e /sys/class/net/venet0 && net_card=venet0
+        test -e /sys/class/net/ens3 && net_card=ens3
+        test -e /sys/class/net/eth0 && net_card=eth0
+        Date_min=`date +%M`
+        #检测是否安装crond
+        test -e /usr/sbin/crond || (yum install crontabs ;systemctl enable crond )
+        #先删除 包含有 Net_check的那一行，然后再添加！ 
+        sed -e "/Net_check.sh/d" /etc/crontab
+        echo "$Date_min * * * * root /root/Net_check.sh $trans_limit $reset_day $rx_tx $net_card" >> /etc/crontab
+}
+
+# CloudFlare DNS Conf
+cf_Dns_Config(){
+        echo 'cf dns start '
+        record_name=$1$2.$3  #需要记录的host
+        auth_email=$cf_email   #CF掌控
+        auth_key=$cf_key     #cfkey
+        zone_name=$3
+        add_name=$1$2
+        # MAYBE CHANGE THESE
+        #dnsip=`curl -4 ip.sb`
+        dnsip=$node_ip
+        #是否开启CDN功能
+        proxied=$4
+        # SCRIPT START
+        zone_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$zone_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" | grep -Po '(?<="id":")[^"]*' | head -1 )
+        record_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json"  | grep -Po '(?<="id":")[^"]*')
+        record4=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=A" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
+        #check if new
+        #[[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":false}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$dnsip\"}")
+        [[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}')
+        ####end
+        echo 'cf host dns done '
+} 
+
+tls_get(){
+	[[ -e  /etc/tls ]] || mkdir /etc/tls
+	cd /etc/tls
+	rm -rf $host_s1.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s1.crt 
+	rm -rf $host_s1.key ; curl -O -k https://srd.freessr.bid/tls/$host_s1.key 
+	rm -rf $host_s2.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s2.crt 
+	rm -rf $host_s2.key ; curl -O -k https://srd.freessr.bid/tls/$host_s2.key
+	rm -rf $host_s3.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s3.crt 
+	rm -rf $host_s3.key ; curl -O -k https://srd.freessr.bid/tls/$host_s3.key 
+	rm -rf $host_n1.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n1.crt 
+	rm -rf $host_n1.key ; curl -O -k https://srd.freessr.bid/tls/$host_n1.key
+	rm -rf $host_n2.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n2.crt 
+	rm -rf $host_n2.key ; curl -O -k https://srd.freessr.bid/tls/$host_n2.key
+	rm -rf $host_n3.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n3.crt 
+	rm -rf $host_n3.key ; curl -O -k https://srd.freessr.bid/tls/$host_n3.key
+	cd
+}
+
+caddy_web_install(){
+	_load download-caddy.sh
+	_download_caddy_file
+	_install_caddy_service
+}
+
+caddy_web_config(){
+	web_domain=$1$2.$3
+	web_zone=$3
+	web_proxy=$4
+	cat >/etc/caddy/sites/$web_domain <<-EOF
+web_domain:443 {
+    tls /etc/tls/${web_zone}.crt /etc/tls/${web_zone}.key
+    gzip
+	timeouts none
+    proxy / $web_proxy {
+    }
+}
+web_domain:8008 {
+    gzip
+	timeouts none
+    proxy / $web_proxy {
+    }
+}
+		EOF
+}
+
+
+v2ray_Sub(){
+        #获取参数
+        node_id=$1  #获取前缀中的数字ID
+        server=$2   #获取网站 API
+        #获取 V2 和 SR的 值，因为同时存在两个版本的 V2 所以，就这么设计了
+        test -e /tmp/v2 && v2=$(cat /tmp/v2)
+        test -e /tmp/s1 && s1=$(cat /tmp/s1)
+        #api 上报信息
+        curl -d "s1=$s1&v2=$v2" http://$server/api/ssn_v2/$node_id
+}
+
+
+##安装vnstat流量统计脚本
+vnstat_Install(){
+        echo 'vnstat install start'
+        yum -y install epel-release
+        yum -y update
+        yum -y install vnstat
+        systemctl enable vnstat
+        systemctl restart vnstat
+        echo 'vnstat intall done '
+}
+
+v2s1_config(){
+	#配置 登录密钥
+	sshd_Key
+	#阿里云顿卸载
+	aliyun_Uninstall
+	#Net_check
+	[[ $netcheck_install == [Yy] ]] && net_Check 
+	#写入域名记录
+	[[ $node_s1 ]] && sed -i -e "s/api_Curl $node_s1 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s1 $host_sssn " >> /root/Net_check.sh
+	[[ $node_s2 ]] && sed -i -e "s/api_Curl $node_s2 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s2 $host_sssn " >> /root/Net_check.sh
+
+	[[ $node_n1 ]] && sed -i -e "s/api_Curl $node_n1 $host_nssn//g" /root/Net_check.sh && echo "api_Curl $node_n1 $host_nssn " >> /root/Net_check.sh
+	[[ $node_n2 ]] && sed -i -e "s/api_Curl $node_n2 $host_nssn//g" /root/Net_check.sh && echo "api_Curl $node_n2 $host_nssn " >> /root/Net_check.sh
+
+	#将域名解析写入到host文件
+	echo $fre_s$node_s1 >> /root/host
+	echo $fre_s$node_s2 >> /root/host
+	echo $fre_n$node_n1 >> /root/host
+	echo $fre_n$node_n2 >> /root/host
+	#放行端口
+	firewall_Config
+	#CF_DNS
+	#DNS配置
+	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s1 $cf_cdn
+	sleep 2 
+	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n1 $cf_cdn
+	sleep 2 
+	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s1 false
+	sleep 2  
+	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n1 false
+	sleep 2 
+
+	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s2 false
+	sleep 2 
+	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n2 false
+	sleep 2 
+	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s2 false
+	sleep 2 
+	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n2 false
+	sleep 2
+
+	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s3 false
+	sleep 2 
+	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s3 false
+	sleep 2 
+	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n3 false
+	sleep 2 
+	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n3 false
+	sleep 2 
+	#获取 tls 文件
+	tls_get
+	#安装 caddy 
+	[[ -e /etc/caddy ]] || caddy_web_install
+	#配置 caddy 反向代理 文件！ 
+	caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
+	#如果 v2ray的 domain存在，那么就不写入 domain这个 ，如果没配置，那就自由！
+	#如果判断这个 domain是否存在呢？ 有点意思。
+	if [[ $domani ]]; then
+		#statements
+	else
+		[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
+		[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n1 $host_nssn
 	fi
-	read -p "$(echo -e "请选择 [${magenta}1-2 默认选择1$none]:")" choose
-	[[ -z $choose ]] && choose="1"
-	case $choose in
-	1)
-		install
-		break
-		;;
-	2)
-		uninstall
-		break
-		;;
-	*)
-		error
-		;;
-	esac
-done
+
+	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s2 $host_sssn
+	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s3 $host_sssn
+
+	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s1 $host_sssn
+	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s2 $host_sssn
+	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s3 $host_sssn
+
+	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_sssn
+	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_sssn
+
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_sssn
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_sssn
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_sssn
+
+	#v2ray sub 上传数据
+	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
+	sleep 2 
+	[[ $node_s2 ]] && v2ray_Sub $node_s2 $host_sssn
+	sleep 2 
+
+	[[ $node_n1 ]] && v2ray_Sub $node_n1 $host_nssn
+	sleep 2 
+	[[ $node_n2 ]] && v2ray_Sub $node_n2 $host_nssn
+	sleep 2 
+
+	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
+	sleep 2 
+	[[ $node_s2 ]] && v2ray_Sub $node_s2 $host_sssn
+	sleep 2 
+
+	[[ $node_n1 ]] && v2ray_Sub $node_n1 $host_nssn
+	sleep 2 
+	[[ $node_n2 ]] && v2ray_Sub $node_n2 $host_nssn
+	sleep 2 
+
+	#vnstat安装
+	[[ -e /usr/bin/vnstat ]] && vnstat_Install
+
+	# 
+}	
+
+#####start 现在开始
+clear
+echo "..........v2s1 一键安装脚本..........."
+echo
+echo "包含如下功能："
+echo
+echo "1 putty_key 2 Net_check网络检测 3 CF_DNS域名 4 Nginx安装/配置 5 vnstat安装 6 "
+echo 
+echo "脚本可以自带一些参数： CF相关参数 ， 域名相关参数 ，域名！ "
+echo
+echo "现在开始配置吧！"
+echo
+echo
+echo "S站v2ray节点ID？ 默认为空"
+echo 
+read node_s1
+
+echo "S站SS 节点ID？ 默认为空"
+echo 
+read node_s2
+#
+echo "N站V2ray节点ID？ 默认为空"
+echo 
+read node_n1
+
+echo "N站SS 节点ID？ 默认为空"
+echo 
+read node_n2
+#
+echo "是否开启 CDN ？ 默认 N"
+read cf_cdn
+[[ $cf_cdn ]] && cf_cdn=false
+if [[ $cf_cdn != [Yy] ]]; then
+	#statements
+	cf_cdn=false
+else
+	cf_cdn=true
+fi
+#
+echo "是否配置 Net_check? 默认为空"
+echo 
+read netcheck_install 
+if [[ $netcheck_install ]]; then
+	#statements
+
+	echo "是否双向统计流量？ 1/0 默认 0"
+	echo " 1 是双向统计 ， 0 是单向统计"
+	echo 
+
+	read rx_tx
+	[[ -z $rx_tx ]] && rx_tx=0
+	echo 
+	echo "每月流量重置日是？ 默认 1 "
+	echo
+	read reset_day
+	[[ -z $reset_day ]] && reset_day=1
+	ehco 
+
+	echo "每月流量多少G？ 默认 888 （1T）"
+	read trans_limit
+	[[ -z $trans_limit ]] && trans_limit=888
+	echo 
+fi
+echo 
+
+#常用的参数和配置：
+cf_email=$1
+cf_key=$2
+#s的前缀 s
+fre_s=$3
+host_sssn=$4
+host_s1=$5
+host_s2=$6
+host_s3=$7
+#n 的前缀 n
+fre_n=$8
+host_nssn=$9
+host_n1=${10}
+host_n2=${11}
+host_n3=${12}
+#当前服务器ip
+node_ip=`curl -4 ip.sb`
+
+#现在开始正常处理所有节点！
+echo "现在开始安装"
+echo 
+#v2ray脚本的安装开始
+install_ask

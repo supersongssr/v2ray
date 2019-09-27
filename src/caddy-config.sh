@@ -1,10 +1,10 @@
-local email=$(((RANDOM << 22)))
+#local email=$(((RANDOM << 22)))
 case $v2ray_transport in
 4)
 	if [[ $is_path ]]; then
-		cat >/etc/caddy/Caddyfile <<-EOF
+		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls ${email}@gmail.com
+    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
     gzip
 	timeouts none
     proxy / $proxy_site {
@@ -18,9 +18,9 @@ $domain {
 import sites/*
 		EOF
 	else
-		cat >/etc/caddy/Caddyfile <<-EOF
+		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls ${email}@gmail.com
+    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
 	timeouts none
 	proxy / 127.0.0.1:${v2ray_port} {
 		websocket
@@ -32,9 +32,9 @@ import sites/*
 	;;
 5)
 	if [[ $is_path ]]; then
-		cat >/etc/caddy/Caddyfile <<-EOF
+		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls ${email}@gmail.com
+    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
     gzip
 	timeouts none
     proxy / $proxy_site {
@@ -49,9 +49,9 @@ $domain {
 import sites/*
 		EOF
 	else
-		cat >/etc/caddy/Caddyfile <<-EOF
+		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls ${email}@gmail.com
+    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
 	timeouts none
 	proxy / https://127.0.0.1:${v2ray_port} {
         header_upstream Host {host}
