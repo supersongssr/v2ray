@@ -51,12 +51,11 @@ _install_caddy_service() {
 
 #获取caddy的tls证书文件
 _caddy_tls_get(){
-	mkdir -p /etc/ssl/caddy
-	chown -R www-data.www-data /etc/ssl/caddy
+	mkdir -p /etc/ssl
 	# 域名是 $domain 
 	zone_domain=${domain#*.}
-	cd /etc/ssl/caddy
-	rm -rf /etc/ssl/caddy/$zone_domain.crt && rm -rf /etc/ssl/caddy/$zone_domain.key 
+	cd /etc/ssl
+	rm -rf $zone_domain.crt && rm -rf $zone_domain.key 
 	curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt && curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt
 	cd
 }  

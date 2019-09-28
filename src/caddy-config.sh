@@ -4,7 +4,7 @@ case $v2ray_transport in
 	if [[ $is_path ]]; then
 		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
+    tls /etc/ssl/caddy/${zone_domain}.crt /etc/ssl/${zone_domain}.key
     gzip
 	timeouts none
     proxy / $proxy_site {
@@ -15,26 +15,24 @@ $domain {
         websocket
     }
 }
-import sites/*
 		EOF
 	else
 		cat >/etc/caddy/sites/$domain <<-EOF
 $domain {
-    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
+    tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
 	timeouts none
 	proxy / 127.0.0.1:${v2ray_port} {
 		websocket
 	}
 }
-import sites/*
 		EOF
 	fi
 	;;
 5)
 	if [[ $is_path ]]; then
 		cat >/etc/caddy/sites/$domain <<-EOF
-$domain {
-    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
+${domain}:443 {
+    tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
     gzip
 	timeouts none
     proxy / $proxy_site {
@@ -46,12 +44,11 @@ $domain {
 		insecure_skip_verify
     }
 }
-import sites/*
 		EOF
 	else
 		cat >/etc/caddy/sites/$domain <<-EOF
-$domain {
-    tls /etc/ssl/caddy/${zone_domain}.crt /etc/tls/${zone_domain}.key
+${domain}:443 {
+    tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
 	timeouts none
 	proxy / https://127.0.0.1:${v2ray_port} {
         header_upstream Host {host}
@@ -59,7 +56,6 @@ $domain {
 		insecure_skip_verify
 	}
 }
-import sites/*
 		EOF
 	fi
 	;;

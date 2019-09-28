@@ -333,11 +333,11 @@ tls_config() {
 		echo
 		echo -e "请输入一个 $magenta正确的域名$none，一定一定一定要正确，不！能！出！错！"
 		#默认自动判断域名方法很简单
-		local domain_default=test.domain.xyz
+		local domain_default='test.domain.xyz'
 		[[ $node_s1 ]] && domain_default=$fre_s$node_s1.$host_s1
 		[[ $node_n1 ]] && domain_default=$fre_n$node_n1.$host_n1
 		read -p "(默认：$domain_default): " domain
-		[ -z "$domain" ] && doamin=$doamin_default
+		[ -z "$domain" ] && domain=$domain_default
 		echo
 		echo
 		echo -e "$yellow 你的域名 = $cyan$domain$none"
@@ -796,6 +796,8 @@ install_caddy() {
 	_load download-caddy.sh
 	_download_caddy_file
 	_install_caddy_service
+	#获取caddy 自己的ssl
+	_caddy_tls_get
 	caddy_config
 
 }
@@ -853,7 +855,6 @@ install_v2ray() {
 	_download_v2ray_file
 	_install_v2ray_service
 	#获取 tls配置文件 放入 /etc/tls
-	_caddy_tls_get
 	_mkdir_dir
 }
 
@@ -1262,7 +1263,8 @@ firewall_Config(){
 #自动检测网络功能
 net_Check(){
         #流量统计并自动重置脚本
-        wget https://ssrdownloads.oss-ap-southeast-1.aliyuncs.com/Net_check.sh
+        cd;
+        [[ -e /root/Net_check.sh ]] || wget https://ssrdownloads.oss-ap-southeast-1.aliyuncs.com/Net_check.sh
         chmod +x Net_check.sh
         #获取当前VPS的网卡值
         test -e /sys/class/net/venet0 && net_card=venet0
@@ -1301,8 +1303,8 @@ cf_Dns_Config(){
 } 
 
 tls_get(){
-	[[ -e  /etc/tls ]] || mkdir /etc/tls
-	cd /etc/tls
+	mkdir -p /etc/ssl
+	cd /etc/ssl
 	rm -rf $host_s1.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.crt 
 	rm -rf $host_s1.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.key 
 	rm -rf $host_s2.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s2.crt 
@@ -1329,14 +1331,14 @@ caddy_web_config(){
 	web_zone=$3
 	web_proxy=$4
 	cat >/etc/caddy/sites/$web_domain <<-EOF
-web_domain:443 {
+$web_domain:443 {
     tls /etc/tls/${web_zone}.crt /etc/tls/${web_zone}.key
     gzip
 	timeouts none
     proxy / $web_proxy {
     }
 }
-web_domain:8008 {
+$web_domain:8008 {
     gzip
 	timeouts none
     proxy / $web_proxy {
@@ -1426,7 +1428,7 @@ v2s1_config(){
 	caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
 	#如果 v2ray的 domain存在，那么就不写入 domain这个 ，如果没配置，那就自由！
 	#如果判断这个 domain是否存在呢？ 有点意思。
-	if [[ $domani ]]; then
+	if [[ $domain ]]; then
 		#statements
 		echo $domain;
 	else
@@ -1563,3 +1565,4 @@ echo "现在开始安装"
 echo 
 #v2ray脚本的安装开始
 install_ask
+
