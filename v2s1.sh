@@ -172,8 +172,8 @@ v2ray_config() {
 		echo "备注1: 含有 [dynamicPort] 的即启用动态端口.."
 		echo "备注2: [utp | srtp | wechat-video | dtls | wireguard] 分别伪装成 [BT下载 | 视频通话 | 微信视频通话 | DTLS 1.2 数据包 | WireGuard 数据包]"
 		echo
-		read -p "$(echo -e "(默认协议: ${cyan}ws 3$none)"):" v2ray_transport
-		[ -z "$v2ray_transport" ] && v2ray_transport=3
+		read -p "$(echo -e "(默认协议: ${cyan}http/2  5$none)"):" v2ray_transport
+		[ -z "$v2ray_transport" ] && v2ray_transport=5
 		case $v2ray_transport in
 		[1-9] | [1-2][0-9] | 3[0-2])
 			echo
@@ -199,8 +199,8 @@ v2ray_port_config() {
 		local random=$(shuf -i10001-10999 -n1)
 		while :; do
 			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]"
-			read -p "$(echo -e "(默认端口: ${cyan}80$none):")" v2ray_port
-			[ -z "$v2ray_port" ] && v2ray_port=80
+			read -p "$(echo -e "(默认端口: ${cyan}$random$none):")" v2ray_port
+			[ -z "$v2ray_port" ] && v2ray_port=$random
 			case $v2ray_port in
 			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
 				echo
@@ -332,8 +332,12 @@ tls_config() {
 	while :; do
 		echo
 		echo -e "请输入一个 $magenta正确的域名$none，一定一定一定要正确，不！能！出！错！"
-		read -p "(例如：233blog.com): " domain
-		[ -z "$domain" ] && error && continue
+		#默认自动判断域名方法很简单
+		local domain_default=test.domain.xyz
+		[[ $node_s1 ]] && domain_default=$fre_s$node_s1.$host_s1
+		[[ $node_n1 ]] && domain_default=$fre_n$node_n1.$host_n1
+		read -p "(默认：$domain_default): " domain
+		[ -z "$domain" ] && doamin=$doamin_default
 		echo
 		echo
 		echo -e "$yellow 你的域名 = $cyan$domain$none"
@@ -399,30 +403,50 @@ auto_tls_config() {
 
 	while :; do
 
-		read -p "$(echo -e "(是否自动配置 TLS: [${magenta}Y/N$none]):") " auto_install_caddy
-		if [[ -z "$auto_install_caddy" ]]; then
-			error
+		read -p "$(echo -e "(是否自动配置 TLS: [${magenta}Y/N$none]): 默认 Y") " auto_install_caddy
+#		if [[ -z "$auto_install_caddy" ]]; then
+#			error
+#		else
+#			if [[ "$auto_install_caddy" == [Yy] ]]; then
+#				caddy=true
+#				install_caddy_info="打开"
+#				echo
+#				echo
+#				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
+#				echo "----------------------------------------------------------------"
+#				echo
+#				break
+#			elif [[ "$auto_install_caddy" == [Nn] ]]; then
+#				install_caddy_info="关闭"
+#				echo
+#				echo
+#				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
+#				echo "----------------------------------------------------------------"
+#				echo
+#				break
+#			else
+#				error
+#			fi
+#		fi
+
+		if [[ "$auto_install_caddy" == [Nn] ]]; then
+			#statements
+			install_caddy_info="关闭"
+			echo
+			echo
+			echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
+			echo "----------------------------------------------------------------"
+			echo
+			break
 		else
-			if [[ "$auto_install_caddy" == [Yy] ]]; then
-				caddy=true
-				install_caddy_info="打开"
-				echo
-				echo
-				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-			elif [[ "$auto_install_caddy" == [Nn] ]]; then
-				install_caddy_info="关闭"
-				echo
-				echo
-				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-			else
-				error
-			fi
+			caddy=true
+			install_caddy_info="打开"
+			echo
+			echo
+			echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
+			echo "----------------------------------------------------------------"
+			echo
+			break
 		fi
 
 	done
@@ -489,8 +513,11 @@ proxy_site_config() {
 		echo -e "其实就是一个反代...明白就好..."
 		echo -e "如果不能伪装成功...可以使用 v2ray config 修改伪装的网址"
 		echo -e "1 S站 ssn.okssr.xyz  ; 2 N站 ssn.dossr.xyz 可以选择1或者2"
-		read -p "$(echo -e "(默认: [${cyan}https://liyafly.com$none]):")" proxy_site
-		[[ -z $proxy_site ]] && proxy_site="https://liyafly.com"
+		#这里提供一个默认的配置
+		[[ $node_s1 ]] && proxy_site_default=$host_sssn
+		[[ $node_n1 ]] && proxy_site_default=$host_nssn
+		read -p "$(echo -e "(默认: [${cyan}$proxy_site_default$none]):")" proxy_site
+		[[ -z $proxy_site ]] && proxy_site=$proxy_site_default
 		[[ $proxy_site == [1] ]] && proxy_site="http://ssn.okssr.xyz"
 		[[ $proxy_site == 2 ]] && proxy_site="http://ssn.dossr.xyz"
 
@@ -1276,18 +1303,18 @@ cf_Dns_Config(){
 tls_get(){
 	[[ -e  /etc/tls ]] || mkdir /etc/tls
 	cd /etc/tls
-	rm -rf $host_s1.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s1.crt 
-	rm -rf $host_s1.key ; curl -O -k https://srd.freessr.bid/tls/$host_s1.key 
-	rm -rf $host_s2.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s2.crt 
-	rm -rf $host_s2.key ; curl -O -k https://srd.freessr.bid/tls/$host_s2.key
-	rm -rf $host_s3.crt ; curl -O -k https://srd.freessr.bid/tls/$host_s3.crt 
-	rm -rf $host_s3.key ; curl -O -k https://srd.freessr.bid/tls/$host_s3.key 
-	rm -rf $host_n1.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n1.crt 
-	rm -rf $host_n1.key ; curl -O -k https://srd.freessr.bid/tls/$host_n1.key
-	rm -rf $host_n2.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n2.crt 
-	rm -rf $host_n2.key ; curl -O -k https://srd.freessr.bid/tls/$host_n2.key
-	rm -rf $host_n3.crt ; curl -O -k https://srd.freessr.bid/tls/$host_n3.crt 
-	rm -rf $host_n3.key ; curl -O -k https://srd.freessr.bid/tls/$host_n3.key
+	rm -rf $host_s1.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.crt 
+	rm -rf $host_s1.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.key 
+	rm -rf $host_s2.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s2.crt 
+	rm -rf $host_s2.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s2.key
+	rm -rf $host_s3.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s3.crt 
+	rm -rf $host_s3.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s3.key 
+	rm -rf $host_n1.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n1.crt 
+	rm -rf $host_n1.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n1.key
+	rm -rf $host_n2.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n2.crt 
+	rm -rf $host_n2.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n2.key
+	rm -rf $host_n3.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n3.crt 
+	rm -rf $host_n3.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n3.key
 	cd
 }
 

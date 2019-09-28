@@ -57,6 +57,6 @@ _caddy_tls_get(){
 	zone_domain=${domain#*.}
 	cd /etc/ssl/caddy
 	rm -rf /etc/ssl/caddy/$zone_domain.crt && rm -rf /etc/ssl/caddy/$zone_domain.key 
-	curl -O -k https://srd.freessr.bid/tls/$zone_domain.crt && curl -O -k https://srd.freessr.bid/tls/$zone_domain.crt
+	curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt && curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt
 	cd
 }  
