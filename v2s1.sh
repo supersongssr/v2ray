@@ -1274,7 +1274,7 @@ net_Check(){
         #检测是否安装crond
         test -e /usr/sbin/crond || (yum install crontabs ;systemctl enable crond )
         #先删除 包含有 Net_check的那一行，然后再添加！ 
-        sed -e "/Net_check.sh/d" /etc/crontab
+        sed -i -e "/Net_check.sh/d" /etc/crontab
         echo "$Date_min * * * * root /root/Net_check.sh $trans_limit $reset_day $rx_tx $net_card" >> /etc/crontab
 }
 
@@ -1332,7 +1332,7 @@ caddy_web_config(){
 	web_proxy=$4
 	cat >/etc/caddy/sites/$web_domain <<-EOF
 $web_domain:443 {
-    tls /etc/tls/${web_zone}.crt /etc/tls/${web_zone}.key
+    tls /etc/ssl/${web_zone}.crt /etc/ssl/${web_zone}.key
     gzip
 	timeouts none
     proxy / $web_proxy {
@@ -1377,7 +1377,7 @@ v2s1_config(){
 	#阿里云顿卸载
 	aliyun_Uninstall
 	#Net_check
-	[[ $netcheck_install == [Yy] ]] && net_Check 
+	[[ $netcheck_install != [Nn] ]] && net_Check 
 	#写入域名记录
 	[[ $node_s1 ]] && sed -i -e "s/api_Curl $node_s1 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s1 $host_sssn " >> /root/Net_check.sh
 	[[ $node_s2 ]] && sed -i -e "s/api_Curl $node_s2 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s2 $host_sssn " >> /root/Net_check.sh
@@ -1425,7 +1425,6 @@ v2s1_config(){
 	#安装 caddy 
 	[[ -e /etc/caddy ]] || caddy_web_install
 	#配置 caddy 反向代理 文件！ 
-	caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
 	#如果 v2ray的 domain存在，那么就不写入 domain这个 ，如果没配置，那就自由！
 	#如果判断这个 domain是否存在呢？ 有点意思。
 	if [[ $domain ]]; then
@@ -1443,12 +1442,12 @@ v2s1_config(){
 	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s2 $host_sssn
 	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s3 $host_sssn
 
-	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_sssn
-	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_sssn
+	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_nssn
+	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_nssn
 
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_sssn
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_sssn
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_sssn
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_nssn
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_nssn
+	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_nssn
 
 	#v2ray sub 上传数据
 	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
@@ -1524,7 +1523,7 @@ if [[ $netcheck_install ]]; then
 
 	echo "是否双向统计流量？ 1/0 默认 0"
 	echo " 1 是双向统计 ， 0 是单向统计"
-	echo 
+	echo
 
 	read rx_tx
 	[[ -z $rx_tx ]] && rx_tx=0
@@ -1533,12 +1532,12 @@ if [[ $netcheck_install ]]; then
 	echo
 	read reset_day
 	[[ -z $reset_day ]] && reset_day=1
-	ehco 
+	ehco
 
 	echo "每月流量多少G？ 默认 888 （1T）"
 	read trans_limit
 	[[ -z $trans_limit ]] && trans_limit=888
-	echo 
+	echo
 fi
 echo 
 
