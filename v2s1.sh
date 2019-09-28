@@ -1428,6 +1428,7 @@ v2s1_config(){
 	#如果判断这个 domain是否存在呢？ 有点意思。
 	if [[ $domani ]]; then
 		#statements
+		echo $domain;
 	else
 		[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
 		[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n1 $host_nssn
