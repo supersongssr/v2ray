@@ -1070,6 +1070,7 @@ install() {
 	shadowsocks_config
 	install_info
 
+	
 	# [[ $caddy ]] && domain_check
 	install_v2ray
 	if [[ $caddy || $v2ray_port == "80" ]]; then
@@ -1392,6 +1393,8 @@ v2s1_config(){
 	echo $fre_n$node_n2 >> /root/host
 	#放行端口
 	firewall_Config
+	
+	#这里先解析DNS
 	#CF_DNS
 	#DNS配置
 	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s1 $cf_cdn
@@ -1421,33 +1424,33 @@ v2s1_config(){
 	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n3 false
 	sleep 2 
 	#获取 tls 文件
-	tls_get
+	#tls_get
 	#安装 caddy 
-	[[ -e /etc/caddy ]] || caddy_web_install
+	#[[ -e /etc/caddy ]] || caddy_web_install
 	#配置 caddy 反向代理 文件！ 
 	#如果 v2ray的 domain存在，那么就不写入 domain这个 ，如果没配置，那就自由！
 	#如果判断这个 domain是否存在呢？ 有点意思。
-	if [[ $domain ]]; then
+	#if [[ $domain ]]; then
 		#statements
-		echo $domain;
-	else
-		[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
-		[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n1 $host_nssn
-	fi
+	#	echo $domain;
+	#else
+	#	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
+	#	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n1 $host_nssn
+	#fi
 
-	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s2 $host_sssn
-	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s3 $host_sssn
+	#[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s2 $host_sssn
+	#[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s3 $host_sssn
 
-	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s1 $host_sssn
-	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s2 $host_sssn
-	[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s3 $host_sssn
+	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s1 $host_sssn
+	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s2 $host_sssn
+	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s3 $host_sssn
 
-	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_nssn
-	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_nssn
+	#[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_nssn
+	#[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_nssn
 
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_nssn
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_nssn
-	[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_nssn
+	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_nssn
+	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_nssn
+	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_nssn
 
 	#v2ray sub 上传数据
 	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
@@ -1470,8 +1473,8 @@ v2s1_config(){
 	[[ $node_n2 ]] && v2ray_Sub $node_n2 $host_nssn
 	sleep 2 
 
-	#vnstat安装
-	[[ -e /usr/bin/vnstat ]] && vnstat_Install
+	#vnstat安装 当检测不到 vnstat 时候，就安装之
+	[[ -e /usr/bin/vnstat ]] || vnstat_Install
 
 	# 
 }	
@@ -1515,21 +1518,19 @@ else
 	cf_cdn=true
 fi
 #
-echo "是否配置 Net_check? 默认为空"
+echo "是否配置 Net_check? 默认 Y"
 echo 
 read netcheck_install 
-if [[ $netcheck_install ]]; then
+if [[ $netcheck_install != [Nn] ]]; then
 	#statements
 
-	echo "是否双向统计流量？ 1/0 默认 0"
-	echo " 1 是双向统计 ， 0 是单向统计"
+	echo "单向统计0 还是 双向统计 1？ 默认 0 "
 	echo
-
 	read rx_tx
 	[[ -z $rx_tx ]] && rx_tx=0
 	echo 
 	echo "每月流量重置日是？ 默认 1 "
-	echo
+	echo 
 	read reset_day
 	[[ -z $reset_day ]] && reset_day=1
 	ehco
