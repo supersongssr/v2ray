@@ -2,7 +2,7 @@
 _v2_args() {
 	header="none"
 	if [[ $is_path ]]; then
-		_path="/$path"
+		_path="$path"
 	else
 		_path="/"
 	fi

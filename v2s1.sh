@@ -153,18 +153,6 @@ _sys_time() {
 	[[ $IS_OPENV ]] && pause
 }
 
-
-shadowsocks_config() {
-	#
-	shadowsocks=true
-	echo ssport
-	#SS 密码自动获取
-	sspass=${uuid:0:7}
-	echo $sspass
-	echo $ssciphers_opt
-	echo $blocked_ad_info
-}
-
 install_caddy() {
 	# download caddy file then install
 	_load download-caddy.sh
@@ -624,7 +612,7 @@ ssport=${19}
 #SS 密码自动获取
 sspass=${uuid:0:7}
 #加密 5 6 7 是 ahead 加密 可以选 7  
-ssciphers_opt=${20}
+ssciphers=${20}
 #V2安装 相关参数
 args="online"
 _gitbranch="master"
