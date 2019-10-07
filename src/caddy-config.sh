@@ -2,9 +2,9 @@
 case $v2ray_transport in
 4)
 	if [[ $is_path ]]; then
-		cat >/etc/caddy/sites/$domain <<-EOF
-$domain {
-    tls /etc/ssl/caddy/${zone_domain}.crt /etc/ssl/${zone_domain}.key
+		cat >/etc/caddy/Caddyfile <<-EOF
+${domain}:443 {
+    tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
     gzip
 	timeouts none
     proxy / $proxy_site {
@@ -17,8 +17,8 @@ $domain {
 }
 		EOF
 	else
-		cat >/etc/caddy/sites/$domain <<-EOF
-$domain {
+		cat >/etc/caddy/Caddyfile <<-EOF
+${domain}:443 {
     tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
 	timeouts none
 	proxy / 127.0.0.1:${v2ray_port} {
@@ -30,7 +30,7 @@ $domain {
 	;;
 5)
 	if [[ $is_path ]]; then
-		cat >/etc/caddy/sites/$domain <<-EOF
+		cat >/etc/caddy/Caddyfile <<-EOF
 ${domain}:443 {
     tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
     gzip
@@ -46,7 +46,7 @@ ${domain}:443 {
 }
 		EOF
 	else
-		cat >/etc/caddy/sites/$domain <<-EOF
+		cat >/etc/caddy/Caddyfile <<-EOF
 ${domain}:443 {
     tls /etc/ssl/${zone_domain}.crt /etc/ssl/${zone_domain}.key
 	timeouts none

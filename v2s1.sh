@@ -152,643 +152,17 @@ _sys_time() {
 	echo -e "${none}"
 	[[ $IS_OPENV ]] && pause
 }
-v2ray_config() {
-	# clear
-	echo
-	while :; do
-		echo -e "请选择 "$yellow"V2Ray"$none" 传输协议 [${magenta}1-${#transport[*]}$none]"
-		echo
-		for ((i = 1; i <= ${#transport[*]}; i++)); do
-			Stream="${transport[$i - 1]}"
-			if [[ "$i" -le 9 ]]; then
-				# echo
-				echo -e "$yellow  $i. $none${Stream}"
-			else
-				# echo
-				echo -e "$yellow $i. $none${Stream}"
-			fi
-		done
-		echo
-		echo "备注1: 含有 [dynamicPort] 的即启用动态端口.."
-		echo "备注2: [utp | srtp | wechat-video | dtls | wireguard] 分别伪装成 [BT下载 | 视频通话 | 微信视频通话 | DTLS 1.2 数据包 | WireGuard 数据包]"
-		echo
-		read -p "$(echo -e "(默认协议: ${cyan}http/2  5$none)"):" v2ray_transport
-		[ -z "$v2ray_transport" ] && v2ray_transport=5
-		case $v2ray_transport in
-		[1-9] | [1-2][0-9] | 3[0-2])
-			echo
-			echo
-			echo -e "$yellow V2Ray 传输协议 = $cyan${transport[$v2ray_transport - 1]}$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-	done
-	v2ray_port_config
-}
-v2ray_port_config() {
-	case $v2ray_transport in
-	4 | 5)
-		tls_config
-		;;
-	*)
-		local random=$(shuf -i10001-10999 -n1)
-		while :; do
-			echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]"
-			read -p "$(echo -e "(默认端口: ${cyan}$random$none):")" v2ray_port
-			[ -z "$v2ray_port" ] && v2ray_port=$random
-			case $v2ray_port in
-			[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-				echo
-				echo
-				echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-				;;
-			*)
-				error
-				;;
-			esac
-		done
-		if [[ $v2ray_transport -ge 18 ]]; then
-			v2ray_dynamic_port_start
-		fi
-		;;
-	esac
-}
 
-v2ray_dynamic_port_start() {
 
-	while :; do
-		echo -e "请输入 "$yellow"V2Ray 动态端口开始 "$none"范围 ["$magenta"1-65535"$none"]"
-		read -p "$(echo -e "(默认开始端口: ${cyan}10000$none):")" v2ray_dynamic_port_start_input
-		[ -z $v2ray_dynamic_port_start_input ] && v2ray_dynamic_port_start_input=10000
-		case $v2ray_dynamic_port_start_input in
-		$v2ray_port)
-			echo
-			echo " 不能和 V2Ray 端口一毛一样...."
-			echo
-			echo -e " 当前 V2Ray 端口：${cyan}$v2ray_port${none}"
-			error
-			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-			echo
-			echo
-			echo -e "$yellow V2Ray 动态端口开始 = $cyan$v2ray_dynamic_port_start_input$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-
-	done
-
-	if [[ $v2ray_dynamic_port_start_input -lt $v2ray_port ]]; then
-		lt_v2ray_port=true
-	fi
-
-	v2ray_dynamic_port_end
-}
-v2ray_dynamic_port_end() {
-
-	while :; do
-		echo -e "请输入 "$yellow"V2Ray 动态端口结束 "$none"范围 ["$magenta"1-65535"$none"]"
-		read -p "$(echo -e "(默认结束端口: ${cyan}20000$none):")" v2ray_dynamic_port_end_input
-		[ -z $v2ray_dynamic_port_end_input ] && v2ray_dynamic_port_end_input=20000
-		case $v2ray_dynamic_port_end_input in
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-
-			if [[ $v2ray_dynamic_port_end_input -le $v2ray_dynamic_port_start_input ]]; then
-				echo
-				echo " 不能小于或等于 V2Ray 动态端口开始范围"
-				echo
-				echo -e " 当前 V2Ray 动态端口开始：${cyan}$v2ray_dynamic_port_start_input${none}"
-				error
-			elif [ $lt_v2ray_port ] && [[ ${v2ray_dynamic_port_end_input} -ge $v2ray_port ]]; then
-				echo
-				echo " V2Ray 动态端口结束范围 不能包括 V2Ray 端口..."
-				echo
-				echo -e " 当前 V2Ray 端口：${cyan}$v2ray_port${none}"
-				error
-			else
-				echo
-				echo
-				echo -e "$yellow V2Ray 动态端口结束 = $cyan$v2ray_dynamic_port_end_input$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-			fi
-			;;
-		*)
-			error
-			;;
-		esac
-
-	done
-
-}
-
-tls_config() {
-
-	echo
-	local random=$(shuf -i10001-10999 -n1)
-	while :; do
-		echo -e "请输入 "$yellow"V2Ray"$none" 端口 ["$magenta"10001-10999"$none"]，不能选择 "$magenta"80"$none" 或 "$magenta"443"$none" 端口"
-		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):")" v2ray_port
-		[ -z "$v2ray_port" ] && v2ray_port=$random
-		case $v2ray_port in
-		80)
-			echo
-			echo " ...都说了不能选择 80 端口了咯....."
-			error
-			;;
-		443)
-			echo
-			echo " ..都说了不能选择 443 端口了咯....."
-			error
-			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-			echo
-			echo
-			echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-	done
-
-	while :; do
-		echo
-		echo -e "请输入一个 $magenta正确的域名$none，一定一定一定要正确，不！能！出！错！"
-		#默认自动判断域名方法很简单
-		local domain_default='test.domain.xyz'
-		[[ $node_s1 ]] && domain_default=$fre_s$node_s1.$host_s1
-		[[ $node_n1 ]] && domain_default=$fre_n$node_n1.$host_n1
-		read -p "(默认：$domain_default): " domain
-		[ -z "$domain" ] && domain=$domain_default
-		echo
-		echo
-		echo -e "$yellow 你的域名 = $cyan$domain$none"
-		echo "----------------------------------------------------------------"
-		break
-	done
-#	get_ip
-#	echo
-#	echo
-#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-#	echo
-#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-#	echo
-#	echo -e "$yellow 请将 $magenta$domain$none $yellow解析到: $cyan$ip$none"
-#	echo "----------------------------------------------------------------"
-#	echo
-
-#	while :; do
-#
-#		read -p "$(echo -e "(是否已经正确解析: [${magenta}Y$none]):") " record
-#		if [[ -z "$record" ]]; then
-#			error
-#		else
-#			if [[ "$record" == [Yy] ]]; then
-#				domain_check
-#				echo
-#				echo
-#				echo -e "$yellow 域名解析 = ${cyan}我确定已经有解析了$none"
-#				echo "----------------------------------------------------------------"
-#				echo
-#				break
-#			else
-#				error
-#			fi
-#		fi
-#
-#	done
-
-	if [[ $v2ray_transport -ne 5 ]]; then
-		auto_tls_config
-	else
-		caddy=true
-		install_caddy_info="打开"
-	fi
-
-	if [[ $caddy ]]; then
-		path_config_ask
-	fi
-}
-auto_tls_config() {
-	echo -e "
-
-		安装 Caddy 来实现 自动配置 TLS
-		
-		如果你已经安装 Nginx 或 Caddy
-
-		$yellow并且..自己能搞定配置 TLS$none
-
-		那么就不需要 打开自动配置 TLS
-		"
-	echo "----------------------------------------------------------------"
-	echo
-
-	while :; do
-
-		read -p "$(echo -e "(是否自动配置 TLS: [${magenta}Y/N$none]): 默认 Y") " auto_install_caddy
-#		if [[ -z "$auto_install_caddy" ]]; then
-#			error
-#		else
-#			if [[ "$auto_install_caddy" == [Yy] ]]; then
-#				caddy=true
-#				install_caddy_info="打开"
-#				echo
-#				echo
-#				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-#				echo "----------------------------------------------------------------"
-#				echo
-#				break
-#			elif [[ "$auto_install_caddy" == [Nn] ]]; then
-#				install_caddy_info="关闭"
-#				echo
-#				echo
-#				echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-#				echo "----------------------------------------------------------------"
-#				echo
-#				break
-#			else
-#				error
-#			fi
-#		fi
-
-		if [[ "$auto_install_caddy" == [Nn] ]]; then
-			#statements
-			install_caddy_info="关闭"
-			echo
-			echo
-			echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-		else
-			caddy=true
-			install_caddy_info="打开"
-			echo
-			echo
-			echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-		fi
-
-	done
-}
-path_config_ask() {
-	echo
-	while :; do
-		echo -e "是否开启 网站伪装 和 路径分流 [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认: [${cyan}Y$none]):")" path_ask
-		[[ -z $path_ask ]] && path_ask="y"
-
-		case $path_ask in
-		Y | y)
-			path_config
-			break
-			;;
-		N | n)
-			echo
-			echo
-			echo -e "$yellow 网站伪装 和 路径分流 = $cyan不想配置$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-	done
-}
-path_config() {
-	echo
-	while :; do
-		echo -e "请输入想要 ${magenta}用来分流的路径$none , 例如 /233blog , 那么只需要输入 233blog 即可"
-		read -p "$(echo -e "(默认: [${cyan}panel$none]):")" path
-		[[ -z $path ]] && path="panel"
-
-		case $path in
-		*[/$]*)
-			echo
-			echo -e " 由于这个脚本太辣鸡了..所以分流的路径不能包含$red / $none或$red $ $none这两个符号.... "
-			echo
-			error
-			;;
-		*)
-			echo
-			echo
-			echo -e "$yellow 分流的路径 = ${cyan}/${path}$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		esac
-	done
-	is_path=true
-	proxy_site_config
-}
-proxy_site_config() {
-	echo
-	while :; do
-		echo -e "请输入 ${magenta}一个正确的$none ${cyan}网址$none 用来作为 ${cyan}网站的伪装$none , 例如 https://liyafly.com"
-		echo -e "举例...你当前的域名是 $green$domain$none , 伪装的网址的是 https://liyafly.com"
-		echo -e "然后打开你的域名时候...显示出来的内容就是来自 https://liyafly.com 的内容"
-		echo -e "其实就是一个反代...明白就好..."
-		echo -e "如果不能伪装成功...可以使用 v2ray config 修改伪装的网址"
-		echo -e "1 S站 ssn.okssr.xyz  ; 2 N站 ssn.dossr.xyz 可以选择1或者2"
-		#这里提供一个默认的配置
-		[[ $node_s1 ]] && proxy_site_default=$host_sssn
-		[[ $node_n1 ]] && proxy_site_default=$host_nssn
-		read -p "$(echo -e "(默认: [${cyan}$proxy_site_default$none]):")" proxy_site
-		[[ -z $proxy_site ]] && proxy_site=$proxy_site_default
-		[[ $proxy_site == [1] ]] && proxy_site="http://ssn.okssr.xyz"
-		[[ $proxy_site == 2 ]] && proxy_site="http://ssn.dossr.xyz"
-
-		case $proxy_site in
-		*[#$]*)
-			echo
-			echo -e " 由于这个脚本太辣鸡了..所以伪装的网址不能包含$red # $none或$red $ $none这两个符号.... "
-			echo
-			error
-			;;
-		*)
-			echo
-			echo
-			echo -e "$yellow 伪装的网址 = ${cyan}${proxy_site}$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		esac
-	done
-}
-
-blocked_hosts() {
-	echo
-	while :; do
-		echo -e "是否开启广告拦截(会影响性能) [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认 [${cyan}N$none]):")" blocked_ad
-		[[ -z $blocked_ad ]] && blocked_ad="n"
-
-		case $blocked_ad in
-		Y | y)
-			blocked_ad_info="开启"
-			ban_ad=true
-			echo
-			echo
-			echo -e "$yellow 广告拦截 = $cyan开启$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		N | n)
-			blocked_ad_info="关闭"
-			echo
-			echo
-			echo -e "$yellow 广告拦截 = $cyan关闭$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-	done
-}
 shadowsocks_config() {
-
-	echo
-
-	while :; do
-		echo -e "是否配置 ${yellow}Shadowsocks${none} [${magenta}Y/N$none]"
-		read -p "$(echo -e "(默认 [${cyan}N$none]):") " install_shadowsocks
-		[[ -z "$install_shadowsocks" ]] && install_shadowsocks="n"
-		if [[ "$install_shadowsocks" == [Yy] ]]; then
-			echo
-			shadowsocks=true
-			shadowsocks_port_config
-			break
-		elif [[ "$install_shadowsocks" == [Nn] ]]; then
-			break
-		else
-			error
-		fi
-
-	done
-
-}
-
-shadowsocks_port_config() {
-	local random=$(shuf -i10001-10999 -n1)
-	while :; do
-		echo -e "请输入 "$yellow"Shadowsocks"$none" 端口 ["$magenta"1-65535"$none"]，不能和 "$yellow"V2Ray"$none" 端口相同"
-		read -p "$(echo -e "(默认端口: ${cyan}${random}$none):") " ssport
-		[ -z "$ssport" ] && ssport=$random
-		case $ssport in
-		$v2ray_port)
-			echo
-			echo " 不能和 V2Ray 端口一毛一样...."
-			error
-			;;
-		[1-9] | [1-9][0-9] | [1-9][0-9][0-9] | [1-9][0-9][0-9][0-9] | [1-5][0-9][0-9][0-9][0-9] | 6[0-4][0-9][0-9][0-9] | 65[0-4][0-9][0-9] | 655[0-3][0-5])
-			if [[ $v2ray_transport == [45] ]]; then
-				local tls=ture
-			fi
-			if [[ $tls && $ssport == "80" ]] || [[ $tls && $ssport == "443" ]]; then
-				echo
-				echo -e "由于你已选择了 "$green"WebSocket + TLS $none或$green HTTP/2"$none" 传输协议."
-				echo
-				echo -e "所以不能选择 "$magenta"80"$none" 或 "$magenta"443"$none" 端口"
-				error
-			elif [[ $v2ray_dynamic_port_start_input == $ssport || $v2ray_dynamic_port_end_input == $ssport ]]; then
-				local multi_port="${v2ray_dynamic_port_start_input} - ${v2ray_dynamic_port_end_input}"
-				echo
-				echo " 抱歉，此端口和 V2Ray 动态端口 冲突，当前 V2Ray 动态端口范围为：$multi_port"
-				error
-			elif [[ $v2ray_dynamic_port_start_input -lt $ssport && $ssport -le $v2ray_dynamic_port_end_input ]]; then
-				local multi_port="${v2ray_dynamic_port_start_input} - ${v2ray_dynamic_port_end_input}"
-				echo
-				echo " 抱歉，此端口和 V2Ray 动态端口 冲突，当前 V2Ray 动态端口范围为：$multi_port"
-				error
-			else
-				echo
-				echo
-				echo -e "$yellow Shadowsocks 端口 = $cyan$ssport$none"
-				echo "----------------------------------------------------------------"
-				echo
-				break
-			fi
-			;;
-		*)
-			error
-			;;
-		esac
-
-	done
-
-	shadowsocks_password_config
-}
-shadowsocks_password_config() {
-	new_sspass=${uuid:0:7}
-
-	while :; do
-		echo -e "请输入 "$yellow"Shadowsocks"$none" 密码"
-		read -p "$(echo -e "(默认密码: ${cyan}$new_sspass$none)"): " sspass
-		[ -z "$sspass" ] && sspass=$new_sspass
-		case $sspass in
-		*[/$]*)
-			echo
-			echo -e " 由于这个脚本太辣鸡了..所以密码不能包含$red / $none或$red $ $none这两个符号.... "
-			echo
-			error
-			;;
-		*)
-			echo
-			echo
-			echo -e "$yellow Shadowsocks 密码 = $cyan$sspass$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		esac
-
-	done
-
-	shadowsocks_ciphers_config
-}
-shadowsocks_ciphers_config() {
-
-	while :; do
-		echo -e "请选择 "$yellow"Shadowsocks"$none" 加密协议 [${magenta}1-${#ciphers[*]}$none]"
-		for ((i = 1; i <= ${#ciphers[*]}; i++)); do
-			ciphers_show="${ciphers[$i - 1]}"
-			echo
-			echo -e "$yellow $i. $none${ciphers_show}"
-		done
-		echo
-		read -p "$(echo -e "(默认加密协议: ${cyan}${ciphers[6]}$none)"):" ssciphers_opt
-		[ -z "$ssciphers_opt" ] && ssciphers_opt=7
-		case $ssciphers_opt in
-		[1-7])
-			ssciphers=${ciphers[$ssciphers_opt - 1]}
-			echo
-			echo
-			echo -e "$yellow Shadowsocks 加密协议 = $cyan${ssciphers}$none"
-			echo "----------------------------------------------------------------"
-			echo
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-
-	done
-	pause
-}
-
-install_info() {
-	clear
-	echo
-	echo " ....准备安装了咯..看看有毛有配置正确了..."
-	echo
-	echo "---------- 安装信息 -------------"
-	echo
-	echo -e "$yellow V2Ray 传输协议 = $cyan${transport[$v2ray_transport - 1]}$none"
-
-	if [[ $v2ray_transport == [45] ]]; then
-		echo
-		echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
-		echo
-		echo -e "$yellow 你的域名 = $cyan$domain$none"
-		echo
-		echo -e "$yellow 域名解析 = ${cyan}我确定已经有解析了$none"
-		echo
-		echo -e "$yellow 自动配置 TLS = $cyan$install_caddy_info$none"
-
-		if [[ $ban_ad ]]; then
-			echo
-			echo -e "$yellow 广告拦截 = $cyan$blocked_ad_info$none"
-		fi
-		if [[ $is_path ]]; then
-			echo
-			echo -e "$yellow 路径分流 = ${cyan}/${path}$none"
-		fi
-	elif [[ $v2ray_transport -ge 18 ]]; then
-		echo
-		echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
-		echo
-		echo -e "$yellow V2Ray 动态端口范围 = $cyan${v2ray_dynamic_port_start_input} - ${v2ray_dynamic_port_end_input}$none"
-
-		if [[ $ban_ad ]]; then
-			echo
-			echo -e "$yellow 广告拦截 = $cyan$blocked_ad_info$none"
-		fi
-	else
-		echo
-		echo -e "$yellow V2Ray 端口 = $cyan$v2ray_port$none"
-
-		if [[ $ban_ad ]]; then
-			echo
-			echo -e "$yellow 广告拦截 = $cyan$blocked_ad_info$none"
-		fi
-	fi
-	if [ $shadowsocks ]; then
-		echo
-		echo -e "$yellow Shadowsocks 端口 = $cyan$ssport$none"
-		echo
-		echo -e "$yellow Shadowsocks 密码 = $cyan$sspass$none"
-		echo
-		echo -e "$yellow Shadowsocks 加密协议 = $cyan${ssciphers}$none"
-	else
-		echo
-		echo -e "$yellow 是否配置 Shadowsocks = ${cyan}未配置${none}"
-	fi
-	echo
-	echo "---------- END -------------"
-	echo
-	pause
-	echo
-}
-
-domain_check() {
-	# if [[ $cmd == "yum" ]]; then
-	# 	yum install bind-utils -y
-	# else
-	# 	$cmd install dnsutils -y
-	# fi
-	# test_domain=$(dig $domain +short)
-	test_domain=$(ping $domain -c 1 | grep -oE -m1 "([0-9]{1,3}\.){3}[0-9]{1,3}")
-	if [[ $test_domain != $ip ]]; then
-		echo
-		echo -e "$red 检测域名解析错误....$none"
-		echo
-		echo -e " 你的域名: $yellow$domain$none 未解析到: $cyan$ip$none"
-		echo
-		echo -e " 你的域名当前解析到: $cyan$test_domain$none"
-		echo
-		echo "备注...如果你的域名是使用 Cloudflare 解析的话..在 Status 那里点一下那图标..让它变灰"
-		echo
-		exit 1
-	fi
+	#
+	shadowsocks=true
+	echo ssport
+	#SS 密码自动获取
+	sspass=${uuid:0:7}
+	echo $sspass
+	echo $ssciphers_opt
+	echo $blocked_ad_info
 }
 
 install_caddy() {
@@ -804,7 +178,6 @@ install_caddy() {
 caddy_config() {
 	# local email=$(shuf -i1-10000000000 -n1)
 	_load caddy-config.sh
-
 	# systemctl restart caddy
 	do_service restart caddy
 }
@@ -911,39 +284,6 @@ open_port() {
 		fi
 	fi
 }
-del_port() {
-	if [[ $cmd == "apt-get" ]]; then
-		if [[ $1 != "multiport" ]]; then
-			# if [[ $cmd == "apt-get" ]]; then
-			iptables -D INPUT -m state --state NEW -m tcp -p tcp --dport $1 -j ACCEPT
-			iptables -D INPUT -m state --state NEW -m udp -p udp --dport $1 -j ACCEPT
-			ip6tables -D INPUT -m state --state NEW -m tcp -p tcp --dport $1 -j ACCEPT
-			ip6tables -D INPUT -m state --state NEW -m udp -p udp --dport $1 -j ACCEPT
-			# else
-			# 	firewall-cmd --permanent --zone=public --remove-port=$1/tcp
-			# 	firewall-cmd --permanent --zone=public --remove-port=$1/udp
-			# fi
-		else
-			# if [[ $cmd == "apt-get" ]]; then
-			local ports="${v2ray_dynamicPort_start}:${v2ray_dynamicPort_end}"
-			iptables -D INPUT -p tcp --match multiport --dports $ports -j ACCEPT
-			iptables -D INPUT -p udp --match multiport --dports $ports -j ACCEPT
-			ip6tables -D INPUT -p tcp --match multiport --dports $ports -j ACCEPT
-			ip6tables -D INPUT -p udp --match multiport --dports $ports -j ACCEPT
-			# else
-			# 	local ports="${v2ray_dynamicPort_start}-${v2ray_dynamicPort_end}"
-			# 	firewall-cmd --permanent --zone=public --remove-port=$ports/tcp
-			# 	firewall-cmd --permanent --zone=public --remove-port=$ports/udp
-			# fi
-		fi
-		iptables-save >/etc/iptables.rules.v4
-		ip6tables-save >/etc/iptables.rules.v6
-		# else
-		# 	service iptables save >/dev/null 2>&1
-		# 	service ip6tables save >/dev/null 2>&1
-	fi
-
-}
 
 config() {
 	cp -f /etc/v2ray/233boy/v2ray/config/backup.conf $backup
@@ -951,7 +291,7 @@ config() {
 	chmod +x $_v2ray_sh
 
 	v2ray_id=$uuid
-	alterId=233
+	alterId=16
 	ban_bt=true
 	if [[ $v2ray_transport -ge 18 ]]; then
 		v2ray_dynamicPort_start=${v2ray_dynamic_port_start_input}
@@ -1028,11 +368,6 @@ error() {
 
 }
 
-pause() {
-
-	read -rsp "$(echo -e "按$green Enter 回车键 $none继续....或按$red Ctrl + C $none取消.")" -d $'\n'
-	echo
-}
 do_service() {
 	if [[ $systemd ]]; then
 		systemctl $1 $2
@@ -1046,32 +381,9 @@ show_config_info() {
 	_v2_args
 	_v2_info
 	_load ss-info.sh
-
 }
 
-install() {
-	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -d /etc/v2ray/233boy/v2ray ]]; then
-		echo
-		echo " 大佬...你已经安装 V2Ray 啦...无需重新安装"
-		echo
-		echo -e " $yellow输入 ${cyan}v2ray${none} $yellow即可管理 V2Ray${none}"
-		echo
-		exit 1
-	elif [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f /etc/v2ray/233blog_v2ray_backup.txt && -d /etc/v2ray/233boy/v2ray ]]; then
-		echo
-		echo "  如果你需要继续安装.. 请先卸载旧版本"
-		echo
-		echo -e " $yellow输入 ${cyan}v2ray uninstall${none} $yellow即可卸载${none}"
-		echo
-		exit 1
-	fi
-	v2ray_config
-	blocked_hosts
-	shadowsocks_config
-	install_info
-
-	
-	# [[ $caddy ]] && domain_check
+v2s1_install() {
 	install_v2ray
 	if [[ $caddy || $v2ray_port == "80" ]]; then
 		if [[ $cmd == "yum" ]]; then
@@ -1094,260 +406,88 @@ install() {
 
 	#配置 1 登录密钥 2 Net_check文件 3 aliyun防护 4 CF DNS处理 5 caddy配置和安装 6 vnstat安装 
 	v2s1_config
-
-
 }
-uninstall() {
-
-	if [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f $backup && -d /etc/v2ray/233boy/v2ray ]]; then
-		. $backup
-		if [[ $mark ]]; then
-			_load uninstall.sh
-		else
-			echo
-			echo -e " $yellow输入 ${cyan}v2ray uninstall${none} $yellow即可卸载${none}"
-			echo
-		fi
-
-	elif [[ -f /usr/bin/v2ray/v2ray && -f /etc/v2ray/config.json ]] && [[ -f /etc/v2ray/233blog_v2ray_backup.txt && -d /etc/v2ray/233boy/v2ray ]]; then
-		echo
-		echo -e " $yellow输入 ${cyan}v2ray uninstall${none} $yellow即可卸载${none}"
-		echo
-	else
-		echo -e "
-		$red 大胸弟...你貌似毛有安装 V2Ray ....卸载个鸡鸡哦...$none
-
-		备注...仅支持卸载使用我 (233v2.com) 提供的 V2Ray 一键安装脚本
-		" && exit 1
-	fi
-
-}
-
-#args=$1
-#_gitbranch=$2
-#[ -z $1 ] && args="online"
-#case $args in
-#online)
-#	#hello world
-#	[[ -z $_gitbranch ]] && _gitbranch="master"
-#	;;
-#local)
-#	local_install=true
-#	;;
-#*)
-#	echo
-#	echo -e " 你输入的这个参数 <$red $args $none> ...这个是什么鬼啊...脚本不认识它哇"
-#	echo
-#	echo -e " 这个辣鸡脚本仅支持输入$green local / online $none参数"
-#	echo
-#	echo -e " 输入$yellow local $none即是使用本地安装"
-#	echo
-#	echo -e " 输入$yellow online $none即是使用在线安装 (默认)"
-#	echo
-#	exit 1
-#	;;
-#esac
-
-#提前设置好，其他的安装参数就可以正常设置了
-args="online"
-_gitbranch="master"
-
-#是否安装v2ray 开始询问
-install_ask(){
-
-	clear
-	while :; do
-		echo
-		echo "........... V2Ray 一键安装脚本 & 管理脚本 by 233v2.com .........."
-		echo
-		echo "帮助说明: https://233v2.com/post/1/"
-		echo
-		echo "搭建教程: https://233v2.com/post/2/"
-		echo
-		echo " 1. 安装"
-		echo
-		echo " 2. 卸载"
-		echo
-		if [[ $local_install ]]; then
-			echo -e "$yellow 温馨提示.. 本地安装已启用 ..$none"
-			echo
-		fi
-		read -p "$(echo -e "请选择 [${magenta}1-2 默认选择1$none]:")" choose
-		[[ -z $choose ]] && choose="1"
-		case $choose in
-		1)
-			install
-			break
-			;;
-		2)
-			uninstall
-			break
-			;;
-		*)
-			error
-			;;
-		esac
-	done
-
-}
-
-
-#安装必要工具包 升级必要工具包
-necessary_Package(){
-        cd
-        [[ -e /user/bin/wget ]] || yum install wget -y
-}
-
 
 #服务器更换Key密钥登陆
 sshd_Key(){
-        cd 
-        test -e .ssh || mkdir .ssh   #如果文件夹不存在就创建一个
-        cd .ssh
-        echo "" > authorized_keys
-        echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAoilQplZNXd1Xz+nyKAq5zDyhM0fsi0PscCpF99jSvGtUmvkT04+JcSD1QkNMLSEg1hx6i5XgK/UYFY2LAQx6Me6oVz1jGyJg2elNBBEZyapTLSsKE5v9RZWBRygGsArvI1lshsSIu/T9b8njCPv7tqFrivMTCKjSA2Te9fgF3539wwep4OhK1ZdHmTpCpM4M0Mh4S1U/rPucBlpbY4s+L0kloHV7ZkZ6IvtbTKLqwIvJoDYNKU74sKCAT2gX2k8v5RGjowQyKlDt7V0JAlxafhBSza5c1ju9s1yCCxqVtCysJxnvfMGM0SFg/bGAwjiFzQtbpbvzAbSS3y2/VaE1uQ== mumaxiaoyaorhythm@gmail.com' > authorized_keys
-        sed -i -e "s/#PubkeyAuthentication yes/PubkeyAuthentication yes/g" -i -e "s/PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
-        service sshd restart
+    cd 
+    test -e .ssh || mkdir .ssh   #如果文件夹不存在就创建一个
+    cd .ssh
+    echo "" > authorized_keys
+    echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAoilQplZNXd1Xz+nyKAq5zDyhM0fsi0PscCpF99jSvGtUmvkT04+JcSD1QkNMLSEg1hx6i5XgK/UYFY2LAQx6Me6oVz1jGyJg2elNBBEZyapTLSsKE5v9RZWBRygGsArvI1lshsSIu/T9b8njCPv7tqFrivMTCKjSA2Te9fgF3539wwep4OhK1ZdHmTpCpM4M0Mh4S1U/rPucBlpbY4s+L0kloHV7ZkZ6IvtbTKLqwIvJoDYNKU74sKCAT2gX2k8v5RGjowQyKlDt7V0JAlxafhBSza5c1ju9s1yCCxqVtCysJxnvfMGM0SFg/bGAwjiFzQtbpbvzAbSS3y2/VaE1uQ== mumaxiaoyaorhythm@gmail.com' > authorized_keys
+    sed -i -e "s/#PubkeyAuthentication yes/PubkeyAuthentication yes/g" -i -e "s/PasswordAuthentication yes/PasswordAuthentication no/g" /etc/ssh/sshd_config
+    service sshd restart
 }
 
 #阿里云盾卸载
 aliyun_Uninstall(){
-        echo 'ban aliyun ips '
-        wget -t 1 -T 7 http://update.aegis.aliyun.com/download/uninstall.sh
-        #新增 超时 和 重试次数
-        chmod +x uninstall.sh
-        ./uninstall.sh
-        wget -t 1 -T 7 http://update.aegis.aliyun.com/download/quartz_uninstall.sh
-        #新增 超时 和 重试次数
-        chmod +x quartz_uninstall.sh
-        ./quartz_uninstall.sh
-        pkill aliyun-service
-        rm -fr /etc/init.d/agentwatch /usr/sbin/aliyun-service
-        rm -rf /usr/local/aegis*
-        iptables -I INPUT -s 140.205.201.0/28 -j DROP
-        iptables -I INPUT -s 140.205.201.16/29 -j DROP
-        iptables -I INPUT -s 140.205.201.32/28 -j DROP
-        iptables -I INPUT -s 140.205.225.192/29 -j DROP
-        iptables -I INPUT -s 140.205.225.200/30 -j DROP
-        iptables -I INPUT -s 140.205.225.184/29 -j DROP
-        iptables -I INPUT -s 140.205.225.183/32 -j DROP
-        iptables -I INPUT -s 140.205.225.206/32 -j DROP
-        iptables -I INPUT -s 140.205.225.205/32 -j DROP
-        iptables -I INPUT -s 140.205.225.195/32 -j DROP
-        iptables -I INPUT -s 140.205.225.204/32 -j DROP
-        echo 'ban aliyun ips done '
+    echo 'ban aliyun ips '
+    wget -t 1 -T 7 http://update.aegis.aliyun.com/download/uninstall.sh
+    #新增 超时 和 重试次数
+    chmod +x uninstall.sh
+    ./uninstall.sh
+    wget -t 1 -T 7 http://update.aegis.aliyun.com/download/quartz_uninstall.sh
+    #新增 超时 和 重试次数
+    chmod +x quartz_uninstall.sh
+    ./quartz_uninstall.sh
+    pkill aliyun-service
+    rm -fr /etc/init.d/agentwatch /usr/sbin/aliyun-service
+    rm -rf /usr/local/aegis*
+    iptables -I INPUT -s 140.205.201.0/28 -j DROP
+    iptables -I INPUT -s 140.205.201.16/29 -j DROP
+    iptables -I INPUT -s 140.205.201.32/28 -j DROP
+    iptables -I INPUT -s 140.205.225.192/29 -j DROP
+    iptables -I INPUT -s 140.205.225.200/30 -j DROP
+    iptables -I INPUT -s 140.205.225.184/29 -j DROP
+    iptables -I INPUT -s 140.205.225.183/32 -j DROP
+    iptables -I INPUT -s 140.205.225.206/32 -j DROP
+    iptables -I INPUT -s 140.205.225.205/32 -j DROP
+    iptables -I INPUT -s 140.205.225.195/32 -j DROP
+    iptables -I INPUT -s 140.205.225.204/32 -j DROP
+    echo 'ban aliyun ips done '
 }
-
-
-# "Firewalld  Port..."防火墙设置
-firewall_Config(){
-        test -e /usr/sbin/firewalld || (yum install firewalld -y; systemctl enable firewalld)
-        systemctl unmask firewalld
-        systemctl restart firewalld
-        firewall-cmd --zone=public --add-port=1024/udp --permanent
-        firewall-cmd --zone=public --add-port=1024/tcp --permanent
-        firewall-cmd --zone=public --add-port=8088/udp --permanent
-        firewall-cmd --zone=public --add-port=8088/tcp --permanent
-        firewall-cmd --zone=public --add-port=2333/udp --permanent
-        firewall-cmd --zone=public --add-port=2333/tcp --permanent
-        firewall-cmd --zone=public --add-port=8000/tcp --permanent
-        firewall-cmd --zone=public --add-port=8008/tcp --permanent
-        firewall-cmd --zone=public --add-port=80/tcp --permanent
-        firewall-cmd --zone=public --add-port=80/udp --permanent
-        firewall-cmd --zone=public --add-port=443/tcp --permanent
-        firewall-cmd --zone=public --add-port=443/udp --permanent
-        firewall-cmd --reload
-        systemctl restart firewalld
-}
-
 
 #自动检测网络功能
 net_Check(){
-        #流量统计并自动重置脚本
-        cd;
-        [[ -e /root/Net_check.sh ]] || wget https://ssrdownloads.oss-ap-southeast-1.aliyuncs.com/Net_check.sh
-        chmod +x Net_check.sh
-        #获取当前VPS的网卡值
-        test -e /sys/class/net/venet0 && net_card=venet0
-        test -e /sys/class/net/ens3 && net_card=ens3
-        test -e /sys/class/net/eth0 && net_card=eth0
-        Date_min=`date +%M`
-        #检测是否安装crond
-        test -e /usr/sbin/crond || (yum install crontabs ;systemctl enable crond )
-        #先删除 包含有 Net_check的那一行，然后再添加！ 
-        sed -i -e "/Net_check.sh/d" /etc/crontab
-        echo "$Date_min * * * * root /root/Net_check.sh $trans_limit $reset_day $rx_tx $net_card" >> /etc/crontab
+    #流量统计并自动重置脚本
+    cd;
+    [[ -e /root/Net_check.sh ]] || wget https://ssrdownloads.oss-ap-southeast-1.aliyuncs.com/Net_check.sh
+    chmod +x Net_check.sh
+    #获取当前VPS的网卡值
+    test -e /sys/class/net/venet0 && net_card=venet0
+    test -e /sys/class/net/ens3 && net_card=ens3
+    test -e /sys/class/net/eth0 && net_card=eth0
+    Date_min=`date +%M`
+    #检测是否安装crond
+    test -e /usr/sbin/crond || (yum install crontabs ;systemctl enable crond )
+    #先删除 包含有 Net_check的那一行，然后再添加！ 
+    sed -i -e "/Net_check.sh/d" /etc/crontab
+    echo "$Date_min * * * * root /root/Net_check.sh $trans_limit $reset_day $rx_tx $net_card" >> /etc/crontab
 }
 
 # CloudFlare DNS Conf
 cf_Dns_Config(){
-        echo 'cf dns start '
-        record_name=$1$2.$3  #需要记录的host
-        auth_email=$cf_email   #CF掌控
-        auth_key=$cf_key     #cfkey
-        zone_name=$3
-        add_name=$1$2
-        # MAYBE CHANGE THESE
-        #dnsip=`curl -4 ip.sb`
-        dnsip=$node_ip
-        #是否开启CDN功能
-        proxied=$4
-        # SCRIPT START
-        zone_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$zone_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" | grep -Po '(?<="id":")[^"]*' | head -1 )
-        record_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json"  | grep -Po '(?<="id":")[^"]*')
-        record4=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=A" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
-        #check if new
-        #[[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":false}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$dnsip\"}")
-        [[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}')
-        ####end
-        echo 'cf host dns done '
+    echo 'cf dns start '
+    record_name=$1$2.$3  #需要记录的host
+    auth_email=$cf_email   #CF掌控
+    auth_key=$cf_key     #cfkey
+    zone_name=$3
+    add_name=$1$2
+    # MAYBE CHANGE THESE
+    #dnsip=`curl -4 ip.sb`
+    dnsip=$node_ip
+    #是否开启CDN功能
+    proxied=$4
+    # SCRIPT START
+    zone_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$zone_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" | grep -Po '(?<="id":")[^"]*' | head -1 )
+    record_identifier=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json"  | grep -Po '(?<="id":")[^"]*')
+    record4=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name&type=A" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json")
+    #check if new
+    #[[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":false}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"name\":\"$record_name\",\"content\":\"$dnsip\"}")
+    [[ $record4 == *"\"count\":0"* ]] && $(curl -X POST "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records"   -H "X-Auth-Email:$auth_email"  -H "X-Auth-Key:$auth_key"   -H "Content-Type:application/json"   --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}') || $(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" -H "X-Auth-Email: $auth_email" -H "X-Auth-Key: $auth_key" -H "Content-Type: application/json" --data '{"type":"A","name":"'"$add_name"'","content":"'"$dnsip"'","ttl":1,"priority":10,"proxied":'"$proxied"'}')
+    ####end
+    echo 'cf host dns done '
 } 
-
-tls_get(){
-	mkdir -p /etc/ssl
-	cd /etc/ssl
-	rm -rf $host_s1.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.crt 
-	rm -rf $host_s1.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s1.key 
-	rm -rf $host_s2.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s2.crt 
-	rm -rf $host_s2.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s2.key
-	rm -rf $host_s3.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_s3.crt 
-	rm -rf $host_s3.key ; curl -O -k https://srd.freessr.bid/ssl/$host_s3.key 
-	rm -rf $host_n1.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n1.crt 
-	rm -rf $host_n1.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n1.key
-	rm -rf $host_n2.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n2.crt 
-	rm -rf $host_n2.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n2.key
-	rm -rf $host_n3.crt ; curl -O -k https://srd.freessr.bid/ssl/$host_n3.crt 
-	rm -rf $host_n3.key ; curl -O -k https://srd.freessr.bid/ssl/$host_n3.key
-	cd
-}
-
-caddy_web_install(){
-	_load download-caddy.sh
-	_download_caddy_file
-	_install_caddy_service
-}
-
-caddy_web_config(){
-	web_domain=$1$2.$3
-	web_zone=$3
-	web_proxy=$4
-	cat >/etc/caddy/sites/$web_domain <<-EOF
-$web_domain:443 {
-    tls /etc/ssl/${web_zone}.crt /etc/ssl/${web_zone}.key
-    gzip
-	timeouts none
-    proxy / $web_proxy {
-    }
-}
-$web_domain:8008 {
-    gzip
-	timeouts none
-    proxy / $web_proxy {
-    }
-}
-		EOF
-}
-
 
 v2ray_Sub(){
         #获取参数
@@ -1359,7 +499,6 @@ v2ray_Sub(){
         #api 上报信息
         curl -d "s1=$s1&v2=$v2" http://$server/api/ssn_v2/$node_id
 }
-
 
 ##安装vnstat流量统计脚本
 vnstat_Install(){
@@ -1378,191 +517,116 @@ v2s1_config(){
 	#阿里云顿卸载
 	aliyun_Uninstall
 	#Net_check
-	[[ $netcheck_install != [Nn] ]] && net_Check 
+	[[ -e /root/Net_check.sh ]] || net_Check 
 	#写入域名记录
-	[[ $node_s1 ]] && sed -i -e "s/api_Curl $node_s1 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s1 $host_sssn " >> /root/Net_check.sh
-	[[ $node_s2 ]] && sed -i -e "s/api_Curl $node_s2 $host_sssn//g" /root/Net_check.sh && echo "api_Curl $node_s2 $host_sssn " >> /root/Net_check.sh
-
-	[[ $node_n1 ]] && sed -i -e "s/api_Curl $node_n1 $host_nssn//g" /root/Net_check.sh && echo "api_Curl $node_n1 $host_nssn " >> /root/Net_check.sh
-	[[ $node_n2 ]] && sed -i -e "s/api_Curl $node_n2 $host_nssn//g" /root/Net_check.sh && echo "api_Curl $node_n2 $host_nssn " >> /root/Net_check.sh
+	[[ $s_s1 ]] && sed -i -e "s/api_Curl $s_s1 $s_ssn//g" /root/Net_check.sh && echo "api_Curl $s_s1 $s_ssn " >> /root/Net_check.sh
+	[[ $s_v2 ]] && sed -i -e "s/api_Curl $s_v2 $s_ssn//g" /root/Net_check.sh && echo "api_Curl $s_v2 $s_ssn " >> /root/Net_check.sh
+	[[ $n_s1 ]] && sed -i -e "s/api_Curl $n_s1 $n_ssn//g" /root/Net_check.sh && echo "api_Curl $n_s1 $n_ssn " >> /root/Net_check.sh
+	[[ $n_v2 ]] && sed -i -e "s/api_Curl $n_v2 $n_ssn//g" /root/Net_check.sh && echo "api_Curl $n_v2 $n_ssn " >> /root/Net_check.sh
 
 	#将域名解析写入到host文件
-	echo $fre_s$node_s1 >> /root/host
-	echo $fre_s$node_s2 >> /root/host
-	echo $fre_n$node_n1 >> /root/host
-	echo $fre_n$node_n2 >> /root/host
-	#放行端口
-	firewall_Config
+	echo s$s_s1 >> /root/host
+	echo s$s_v2 >> /root/host
+	echo n$n_s1 >> /root/host
+	echo n$n_v2 >> /root/host
 	
 	#这里先解析DNS
 	#CF_DNS
 	#DNS配置
-	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s1 $cf_cdn
+	[[ $s_s1 ]] && cf_Dns_Config s $s_s1 $s_host $cf_cdn
 	sleep 2 
-	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n1 $cf_cdn
+	[[ $n_s1 ]] && cf_Dns_Config n $n_s1 $n_host $cf_cdn
 	sleep 2 
-	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s1 false
+	[[ $s_v2 ]] && cf_Dns_Config s $s_v2 $s_host false
 	sleep 2  
-	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n1 false
+	[[ $n_v2 ]] && cf_Dns_Config n $n_v2 $n_host false
 	sleep 2 
-
-	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s2 false
-	sleep 2 
-	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n2 false
-	sleep 2 
-	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s2 false
-	sleep 2 
-	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n2 false
-	sleep 2
-
-	[[ $node_s1 ]] && cf_Dns_Config $fre_s $node_s1 $host_s3 false
-	sleep 2 
-	[[ $node_s2 ]] && cf_Dns_Config $fre_s $node_s2 $host_s3 false
-	sleep 2 
-	[[ $node_n1 ]] && cf_Dns_Config $fre_n $node_n1 $host_n3 false
-	sleep 2 
-	[[ $node_n2 ]] && cf_Dns_Config $fre_n $node_n2 $host_n3 false
-	sleep 2 
-	#获取 tls 文件
-	#tls_get
-	#安装 caddy 
-	#[[ -e /etc/caddy ]] || caddy_web_install
-	#配置 caddy 反向代理 文件！ 
-	#如果 v2ray的 domain存在，那么就不写入 domain这个 ，如果没配置，那就自由！
-	#如果判断这个 domain是否存在呢？ 有点意思。
-	#if [[ $domain ]]; then
-		#statements
-	#	echo $domain;
-	#else
-	#	[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s1 $host_sssn
-	#	[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n1 $host_nssn
-	#fi
-
-	#[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s2 $host_sssn
-	#[[ $node_s1 ]] && caddy_web_config $fre_s $node_s1 $host_s3 $host_sssn
-
-	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s1 $host_sssn
-	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s2 $host_sssn
-	#[[ $node_s2 ]] && caddy_web_config $fre_s $node_s2 $host_s3 $host_sssn
-
-	#[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n2 $host_nssn
-	#[[ $node_n1 ]] && caddy_web_config $fre_n $node_n1 $host_n3 $host_nssn
-
-	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n1 $host_nssn
-	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n2 $host_nssn
-	#[[ $node_n2 ]] && caddy_web_config $fre_n $node_n2 $host_n3 $host_nssn
 
 	#v2ray sub 上传数据
-	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
+	[[ $s_s1 ]] && v2ray_Sub $s_s1 $s_ssn
 	sleep 2 
-	[[ $node_s2 ]] && v2ray_Sub $node_s2 $host_sssn
-	sleep 2 
-
-	[[ $node_n1 ]] && v2ray_Sub $node_n1 $host_nssn
-	sleep 2 
-	[[ $node_n2 ]] && v2ray_Sub $node_n2 $host_nssn
+	[[ $s_v2 ]] && v2ray_Sub $s_v2 $s_ssn
 	sleep 2 
 
-	[[ $node_s1 ]] && v2ray_Sub $node_s1 $host_sssn
+	[[ $n_s1 ]] && v2ray_Sub $n_s1 $n_ssn
 	sleep 2 
-	[[ $node_s2 ]] && v2ray_Sub $node_s2 $host_sssn
+	[[ $n_v2 ]] && v2ray_Sub $n_v2 $n_ssn
 	sleep 2 
 
-	[[ $node_n1 ]] && v2ray_Sub $node_n1 $host_nssn
+	[[ $s_s1 ]] && v2ray_Sub $s_s1 $s_ssn
 	sleep 2 
-	[[ $node_n2 ]] && v2ray_Sub $node_n2 $host_nssn
+	[[ $s_v2 ]] && v2ray_Sub $s_v2 $s_ssn
+	sleep 2 
+
+	[[ $n_s1 ]] && v2ray_Sub $n_s1 $n_ssn
+	sleep 2 
+	[[ $n_v2 ]] && v2ray_Sub $n_v2 $n_ssn
 	sleep 2 
 
 	#vnstat安装 当检测不到 vnstat 时候，就安装之
 	[[ -e /usr/bin/vnstat ]] || vnstat_Install
-
-	# 
 }	
 
 #####start 现在开始
-clear
-echo "..........v2s1 一键安装脚本..........."
-echo
-echo "包含如下功能："
-echo
-echo "1 putty_key 2 Net_check网络检测 3 CF_DNS域名 4 Nginx安装/配置 5 vnstat安装 6 "
-echo 
-echo "脚本可以自带一些参数： CF相关参数 ， 域名相关参数 ，域名！ "
-echo
-echo "现在开始配置吧！"
-echo
-echo
-echo "S站v2ray节点ID？ 默认为空"
-echo 
-read node_s1
-
-echo "S站SS 节点ID？ 默认为空"
-echo 
-read node_s2
-#
-echo "N站V2ray节点ID？ 默认为空"
-echo 
-read node_n1
-
-echo "N站SS 节点ID？ 默认为空"
-echo 
-read node_n2
-#
-echo "是否开启 CDN ？ 默认 N"
-read cf_cdn
-[[ $cf_cdn ]] && cf_cdn=false
-if [[ $cf_cdn != [Yy] ]]; then
-	#statements
-	cf_cdn=false
-else
-	cf_cdn=true
-fi
-#
-echo "是否配置 Net_check? 默认 Y"
-echo 
-read netcheck_install 
-if [[ $netcheck_install != [Nn] ]]; then
-	#statements
-
-	echo "单向统计0 还是 双向统计 1？ 默认 0 "
-	echo
-	read rx_tx
-	[[ -z $rx_tx ]] && rx_tx=0
-	echo 
-	echo "每月流量重置日是？ 默认 1 "
-	echo 
-	read reset_day
-	[[ -z $reset_day ]] && reset_day=1
-	ehco
-
-	echo "每月流量多少G？ 默认 888 （1T）"
-	read trans_limit
-	[[ -z $trans_limit ]] && trans_limit=888
-	echo
-fi
-echo 
-
 #常用的参数和配置：
-cf_email=$1
-cf_key=$2
-#s的前缀 s
-fre_s=$3
-host_sssn=$4
-host_s1=$5
-host_s2=$6
-host_s3=$7
-#n 的前缀 n
-fre_n=$8
-host_nssn=$9
-host_n1=${10}
-host_n2=${11}
-host_n3=${12}
-#当前服务器ip
+#S站 SS 节点
+s_s1=$1
+[[ $s_s1 == [Nn] ]] && s_s1=''
+#S站 V2节点
+s_v2=$2
+[[ $s_v2 == [Nn] ]] && s_v2=''
+#N站 SS 节点
+n_s1=$3
+[[ $n_s1 == [Nn] ]] && n_s1=''
+#N站 V2节点
+n_v2=$4
+[[ $n_v2 == [Nn] ]] && n_v2=''
+#NetCheck相关
 node_ip=`curl -4 ip.sb`
-
-#现在开始正常处理所有节点！
-echo "现在开始安装"
-echo 
-#v2ray脚本的安装开始
-install_ask
-
+trans_limit=$5
+reset_day=$6
+#双倍流量计算？ 0=false 1=true
+rx_tx=$7
+#S站 主站
+s_ssn=$8
+s_host=$9
+# N站 主站
+n_ssn=${10}
+n_host=${11}
+#cloduflare相关
+cf_email=${12}
+cf_key=${13}
+#开启CDN； true false 
+cf_cdn=${14}
+#V2ray 配置
+#选项 3 ws 4 ws + tls 5 h2
+v2ray_transport=${15}
+#端口
+v2ray_port=${16}
+#域名
+[[ $s_s1 ]] && domain=s${s_s1}.${s_host} && zone_domain=$s_host
+[[ $s_v2 ]] && domain=s${s_v2}.${s_host} && zone_domain=$s_host
+[[ $n_s1 ]] && domain=n${n_s1}.${n_host} && zone_domain=$n_host
+[[ $n_v2 ]] && domain=n${n_v2}.${n_host} && zone_domain=$n_host
+#路径
+path=${17}
+#反代的网站
+proxy_site=${18}
+#是否开启caddy 
+caddy=true
+#是否路径
+is_path=true
+#SS 配置
+#是否配置 SS
+shadowsocks=true
+#SS 端口
+ssport=${19}
+#SS 密码自动获取
+sspass=${uuid:0:7}
+#加密 5 6 7 是 ahead 加密 可以选 7  
+ssciphers_opt=${20}
+#V2安装 相关参数
+args="online"
+_gitbranch="master"
+#现在开始安装
+v2s1_install

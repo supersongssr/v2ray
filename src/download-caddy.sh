@@ -53,9 +53,9 @@ _install_caddy_service() {
 _caddy_tls_get(){
 	mkdir -p /etc/ssl
 	# 域名是 $domain 
-	zone_domain=${domain#*.}
 	cd /etc/ssl
-	rm -rf $zone_domain.crt && rm -rf $zone_domain.key 
-	curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt && curl -O -k https://srd.freessr.bid/ssl/$zone_domain.crt
+	rm -rf *.crt && rm -rf *.key 
+	mv /etc/v2ray/233boy/v2ray/config/ssl/*.crt /etc/ssl
+	mv /etc/v2ray/233boy/v2ray/config/ssl/*.key /etc/ssl
 	cd
 }  
