@@ -445,7 +445,7 @@ net_Check(){
     test -e /sys/class/net/venet0 && net_card=venet0
     test -e /sys/class/net/ens3 && net_card=ens3
     test -e /sys/class/net/eth0 && net_card=eth0
-    Date_min=`date +%M`
+    ((Date_min=10#`date +%M`))
     #检测是否安装crond
     test -e /usr/sbin/crond || (yum install crontabs ;systemctl enable crond )
     #先删除 包含有 Net_check的那一行，然后再添加！ 
