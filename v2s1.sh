@@ -606,7 +606,7 @@ caddy=true
 is_path=true
 #SS 配置
 #是否配置 SS
-shadowsocks=true
+shadowsocks=${21}
 #SS 端口
 ssport=${19}
 #SS 密码自动获取
