@@ -601,7 +601,7 @@ path=${17}
 #反代的网站
 proxy_site=${18}
 #是否开启caddy 
-caddy=true
+caddy=${22}
 #是否路径
 is_path=true
 #SS 配置
