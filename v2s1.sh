@@ -619,5 +619,9 @@ _gitbranch="master"
 #现在开始安装
 echo '写入 hostname'
 hostnamectl set-hostname S${s_s1}S${s_v2}N${n_s1}N${n_v2}
+#先清理一下安装，卸载之前的安装
+cd;curl -O -k https://srd.freessr.bid/backendremove.sh
+bash backendremove.sh
+#
 echo '安装 V2S1开始'
 v2s1_install
