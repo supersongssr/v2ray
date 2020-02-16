@@ -507,10 +507,10 @@ v2s1_config(){
 	#Net_check
 	[[ -e /root/Net_check.sh ]] || net_Check 
 	#写入域名记录
-	[[ $s_s1 ]] && sed -i -e "s/api_Curl $s_s1 $s_ssn//g" /root/node.sh ; echo "api_Curl $s_s1 $s_ssn " >> /root/node.sh
-	[[ $s_v2 ]] && sed -i -e "s/api_Curl $s_v2 $s_ssn//g" /root/node.sh ; echo "api_Curl $s_v2 $s_ssn " >> /root/node.sh
-	[[ $n_s1 ]] && sed -i -e "s/api_Curl $n_s1 $n_ssn//g" /root/node.sh ; echo "api_Curl $n_s1 $n_ssn " >> /root/node.sh
-	[[ $n_v2 ]] && sed -i -e "s/api_Curl $n_v2 $n_ssn//g" /root/node.sh ; echo "api_Curl $n_v2 $n_ssn " >> /root/node.sh
+	[[ $s_s1 ]] && echo "api_Curl $s_s1 $s_ssn " >> /root/node.sh
+	[[ $s_v2 ]] && echo "api_Curl $s_v2 $s_ssn " >> /root/node.sh
+	[[ $n_s1 ]] && echo "api_Curl $n_s1 $n_ssn " >> /root/node.sh
+	[[ $n_v2 ]] && echo "api_Curl $n_v2 $n_ssn " >> /root/node.sh
 
 	#将域名解析写入到host文件
 	echo s$s_s1 >> /root/host
