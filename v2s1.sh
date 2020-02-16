@@ -620,6 +620,9 @@ ssciphers=${20}
 #V2安装 相关参数
 args="online"
 _gitbranch="master"
+#动态端口
+v2ray_dynamic_port_start_input=${23}
+v2ray_dynamic_port_end_input=${24}
 #现在开始安装
 echo '写入 hostname'
 hostnamectl set-hostname S${s_s1}S${s_v2}N${n_s1}N${n_v2}
