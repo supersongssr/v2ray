@@ -252,6 +252,7 @@ open_port() {
 		# 	service iptables save >/dev/null 2>&1
 		# 	service ip6tables save >/dev/null 2>&1
 	fi
+
 #song 这里添加了 centos yum下的 firewalld开启 端口的方法
 	if [[ $cmd == "yum" ]]; then
 		systemctl restart firewalld
@@ -553,6 +554,9 @@ v2s1_config(){
 
 	#vnstat安装 当检测不到 vnstat 时候，就安装之
 	[[ -e /usr/bin/vnstat ]] || vnstat_Install
+
+	systemctl stop firewalld
+	systemctl disable firewalld 
 }	
 
 #####start 现在开始
