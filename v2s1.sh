@@ -562,67 +562,68 @@ v2s1_config(){
 #####start 现在开始
 #常用的参数和配置：
 #S站 SS 节点
-s_s1=$1
+#node_id=${##*=}
+s_s1=${1##*=}
 [[ $s_s1 == [Nn] ]] && s_s1=''
 #S站 V2节点
-s_v2=$2
+s_v2=${2##*=}
 [[ $s_v2 == [Nn] ]] && s_v2=''
 #N站 SS 节点
-n_s1=$3
+n_s1=${3##*=}
 [[ $n_s1 == [Nn] ]] && n_s1=''
 #N站 V2节点
-n_v2=$4
+n_v2=${4##*=}
 [[ $n_v2 == [Nn] ]] && n_v2=''
 #NetCheck相关
 node_ip=`curl -4 ip.sb`
-trans_limit=$5
-reset_day=$6
+trans_limit=${5##*=}
+reset_day=${6##*=}
 #双倍流量计算？ 0=false 1=true
-rx_tx=$7
+rx_tx=${7##*=}
 #S站 主站
-s_ssn=$8
-s_host=$9
+s_ssn=${8##*=}
+s_host=${9##*=}
 # N站 主站
-n_ssn=${10}
-n_host=${11}
+n_ssn=${10##*=}
+n_host=${11##*=}
 #cloduflare相关
-cf_email=${12}
-cf_key=${13}
+cf_email=${12##*=}
+cf_key=${13#*=}
 #开启CDN； true false 
-cf_cdn=${14}
+cf_cdn=${14#*=}
 #V2ray 配置
 #选项 3 ws 4 ws + tls 5 h2
-v2ray_transport=${15}
+v2ray_transport=${15#*=}
 #端口
-v2ray_port=${16}
+v2ray_port=${16#*=}
 #域名
 [[ $s_s1 ]] && domain=s${s_s1}.${s_host} && zone_domain=$s_host
 [[ $s_v2 ]] && domain=s${s_v2}.${s_host} && zone_domain=$s_host
 [[ $n_s1 ]] && domain=n${n_s1}.${n_host} && zone_domain=$n_host
 [[ $n_v2 ]] && domain=n${n_v2}.${n_host} && zone_domain=$n_host
 #路径
-path=${17}
+path=${17#*=}
 #反代的网站
-proxy_site=${18}
-#是否开启caddy 
-caddy=${22}
+proxy_site=${18#*=}
 #是否路径
 is_path=true
-#SS 配置
-#是否配置 SS
-shadowsocks=${21}
 #SS 端口
-ssport=${19}
+ssport=${19#*=}
 #SS 密码自动获取
 sspass=${uuid:0:7}
 #加密 5 6 7 是 ahead 加密 可以选 7  
-ssciphers=${20}
+ssciphers=${20#*=}
 #V2安装 相关参数
 args="online"
 _gitbranch="master"
+#SS 配置
+#是否配置 SS
+shadowsocks=${21#*=}
+#是否开启caddy 
+caddy=${22#*=}
 #动态端口
-v2ray_dynamic_port_start_input=${23}
-v2ray_dynamic_port_end_input=${24}
+v2ray_dynamic_port_start_input=${23#*=}
+v2ray_dynamic_port_end_input=${24#*=}
 #现在开始安装
 echo '写入 hostname'
 hostnamectl set-hostname S${s_s1}S${s_v2}N${n_s1}N${n_v2}
