@@ -2885,6 +2885,7 @@ rev2port)
 	backup_config v2ray_port
 	config
 	clear
+	view_v2ray_config_info
 	;;
 v | version)
 	echo
