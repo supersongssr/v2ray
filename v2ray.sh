@@ -2880,9 +2880,9 @@ reuuid)
 	# download_v2ray_config_ask
 	;;
 rev2port)
-	backup_config v2ray_port
 	v2PortRandom=$(shuf -i23456-43210 -n1)
 	v2ray_port=$v2PortRandom
+	backup_config v2ray_port
 	config
 	clear
 	;;
