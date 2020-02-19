@@ -2879,6 +2879,13 @@ reuuid)
 	view_v2ray_config_info
 	# download_v2ray_config_ask
 	;;
+rev2port)
+	backup_config v2ray_port
+	v2PortRandom=$(shuf -i23456-43210 -n1)
+	v2ray_port=$v2PortRandom
+	config
+	clear
+	;;
 v | version)
 	echo
 	echo -e " 当前 V2Ray 版本: ${green}$v2ray_ver$none  /  当前 V2Ray 管理脚本版本: ${cyan}$_version$none"
