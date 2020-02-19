@@ -619,8 +619,10 @@ _gitbranch="master"
 #SS 配置
 #是否配置 SS
 shadowsocks=${21#*=}
+[[ $shadowsocks == false ]] && shadowsocks=''
 #是否开启caddy 
 caddy=${22#*=}
+[[ $caddy == false ]] && caddy=''
 #动态端口
 v2ray_dynamic_port_start_input=${23#*=}
 v2ray_dynamic_port_end_input=${24#*=}
