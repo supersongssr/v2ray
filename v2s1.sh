@@ -635,3 +635,8 @@ bash backendremove.sh
 #
 echo '安装 V2S1开始'
 v2s1_install
+#
+echo '删除自身脚本'
+rm -rf /root/$0
+rm -rf /root/v2s1.sh
+
